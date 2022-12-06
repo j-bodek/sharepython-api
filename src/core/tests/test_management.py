@@ -4,6 +4,7 @@ from django.db.utils import OperationalError
 from django.test import SimpleTestCase
 from django.core.management import call_command
 
+
 # mock wait_for_db command check method
 @patch("core.management.commands.wait_for_db.Command.check")
 class TestWaitForDatabaseCommand(SimpleTestCase):
@@ -33,7 +34,11 @@ class TestWaitForDatabaseCommand(SimpleTestCase):
 
         # list of values that will be returned when patched_check is called
         # one at a time
-        patched_check.side_effect = [Psycopg2OperationalError, OperationalError, True]
+        patched_check.side_effect = [
+            Psycopg2OperationalError,
+            OperationalError,
+            True,
+        ]
         call_command("wait_for_db")
         self.assertEqual(patched_check.call_count, 3)
         patched_check.assert_called_with(databases=["default"])
