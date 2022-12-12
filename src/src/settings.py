@@ -27,13 +27,33 @@ SECRET_KEY = "django-insecure-z%o5p-6!l5@bvy!qrvfuup3m)dj2^n-(!qls&fgo)6$ackga@3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+CORS_ORIGIN_WHITELIST = [
+    "http://127.0.0.1:8080",
+    "http://0.0.0.0:8080",
+    "http://localhost:8080",
+    "http://127.0.0.1:8000",
+    "http://0.0.0.0:8000",
+    "http://localhost:8080",
+]
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8080",
+    "http://0.0.0.0:8080",
+    "http://localhost:8080",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8080",
+    "http://0.0.0.0:8080",
+    "http://localhost:8080",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
 INSTALLED_APPS = [
     "core",
+    "users",
     "jwt_auth",
     "rest_framework",
     "rest_framework_simplejwt",
@@ -44,11 +64,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "drf_spectacular",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -146,4 +168,5 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
     "TOKEN_OBTAIN_SERIALIZER": "jwt_auth.serializers.TokenObtainPairSerializer",
+    "USER_ID_FIELD": "uuid",
 }

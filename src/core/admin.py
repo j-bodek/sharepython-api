@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Register your models here.
 class UserAdmin(BaseUserAdmin):
-    ordering = ["id"]
+    ordering = ["date_joined"]
     list_display = [
         "email",
         "first_name",
@@ -17,7 +17,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (
             None,
-            {"fields": ("email", "password")},
+            {"fields": ("first_name", "last_name", "email")},
         ),
         (
             _("Permissions"),

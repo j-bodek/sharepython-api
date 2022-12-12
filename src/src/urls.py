@@ -26,4 +26,5 @@ urlpatterns = [
         name="api-docs",
     ),
     path("api/auth/", include("jwt_auth.urls")),
+    path("api/", include("users.urls")),
 ]

@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
     BaseUserManager,
 )
+import uuid
 from django.db import models
 from typing import Union
 from django.utils import timezone
@@ -57,12 +58,18 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom user model that don't have unique username
-    but unique email
+    but unique email, and uuid as pk
     """
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
+    uuid = models.UUIDField(
+        primary_key=True,
+        unique=True,
+        editable=False,
+        default=uuid.uuid4,
+    )
     email = models.EmailField(
         _("email"),
         max_length=255,
