@@ -61,14 +61,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     but unique email, and uuid as pk
     """
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
-
     uuid = models.UUIDField(
         primary_key=True,
-        unique=True,
         editable=False,
         default=uuid.uuid4,
+        max_length=36,
     )
     email = models.EmailField(
         _("email"),
@@ -95,6 +92,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         ),
     )
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     # override default user manager
     objects = UserManager()

@@ -26,7 +26,7 @@ class RegisterView(generics.CreateAPIView):
     return access, refresh token and user data
     """
 
-    permission_classes = (permissions.IsAuthenticated,)
+    # permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
     token_class = RefreshToken
 
