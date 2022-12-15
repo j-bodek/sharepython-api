@@ -8,6 +8,10 @@ class TokenObtainPairSerializer(TokenObtainPairSerializer):
     """
 
     def validate(self, attrs: dict) -> dict:
+        """
+        Update payload with basic user data
+        """
+
         data = super().validate(attrs)
         data.update(
             {

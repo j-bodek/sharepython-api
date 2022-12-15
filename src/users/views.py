@@ -10,7 +10,6 @@ class RetrieveUpdateDestroyUserView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
-    lookup_url_kwarg = "uuid"
 
     def get_object(self):
         return self.request.user

@@ -1,6 +1,7 @@
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from users.serializers import UserSerializer
+from jwt_auth.permissions import IsNotAuthenticated
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -26,9 +27,9 @@ class RegisterView(generics.CreateAPIView):
     return access, refresh token and user data
     """
 
-    # permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
     token_class = RefreshToken
+    permission_classes = (IsNotAuthenticated,)
 
     def create(self, request: Type[HttpRequest], *args, **kwargs) -> Type[Response]:
         """
@@ -54,6 +55,13 @@ class RegisterView(generics.CreateAPIView):
         self, serializer: Type[UserSerializer]
     ) -> Type[get_user_model()]:
         return serializer.save()
+
+    def perform_authentication(self, request):
+        """
+        Perform authentication lazily, the first time either
+        `request.user` or `request.auth` is accessed.
+        """
+        pass
 
     @classmethod
     def get_token(cls, user: Type[get_user_model()]) -> Type[RefreshToken]:
