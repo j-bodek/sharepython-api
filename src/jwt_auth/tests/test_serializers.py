@@ -29,4 +29,7 @@ class TestTokenObtainPairSerializer(TestCase):
             }
         )
         serializer.is_valid(raise_exception=True)
-        self.assertEqual(serializer.validated_data["user"]["uuid"], self.user.uuid)
+        self.assertEqual(
+            serializer.validated_data["user"]["uuid"],
+            self.user.uuid,
+        )

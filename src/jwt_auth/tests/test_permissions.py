@@ -15,10 +15,14 @@ class TestIsNotAuthenticated(SimpleTestCase):
         """Test with authenticated request"""
 
         self.request.user.is_authenticated = True
-        self.assertFalse(self.permission.has_permission(self.request, self.view))
+        self.assertFalse(
+            self.permission.has_permission(self.request, self.view),
+        )
 
     def test_with_not_authenticated(self):
         """Test with not authenticated request"""
 
         self.request.user.is_authenticated = False
-        self.assertTrue(self.permission.has_permission(self.request, self.view))
+        self.assertTrue(
+            self.permission.has_permission(self.request, self.view),
+        )
