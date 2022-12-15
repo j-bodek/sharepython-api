@@ -9,7 +9,12 @@ jobs:
       # Service container image
       - image: cimg/postgres:14.0
         environment:
-          POSTGRES_USER: user
+          POSTGRES_DB: devdb
+          POSTGRES_USER: devuser
+          POSTGRES_PASSWORD: devpass
+          POSTGRES_PORT: 5432
+          POSTGRES_URL: postgresql://root@localhost/circle_test?sslmode=disable
+          POSTGRES_HOST: localhost
 
     steps:
       - checkout
