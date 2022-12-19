@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "core",
     "users",
     "jwt_auth",
+    "codespace",
     "rest_framework",
     "rest_framework_simplejwt",
     "django.contrib.admin",
