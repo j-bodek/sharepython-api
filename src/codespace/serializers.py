@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from core.models import CodeSpace
+from django.contrib.auth.models import AbstractBaseUser
+from django.conf import settings
+from typing import Type, Union
 from src import REDIS
 import uuid
 import pickle
-from typing import Type, Union
-from django.contrib.auth.models import AbstractBaseUser
 
 
 class CodeSpaceSerializer(serializers.ModelSerializer):
@@ -50,13 +51,15 @@ class CodeSpaceSerializer(serializers.ModelSerializer):
 
         if self.instance is not None:
             instance_uuid = str(self.instance.uuid)
+            expire_time = settings.CODESPACE_REDIS_EXPIRE_TIME
         else:
             # if user is not authenticated set
             # codespace as temporary
             instance_uuid = f"tmp-{uuid.uuid4()}"
+            expire_time = settings.TMP_CODESPACE_REDIS_EXPIRE_TIME
 
         data = pickle.dumps(self.get_redis_data())
-        REDIS.set(instance_uuid, data)
+        REDIS.set(instance_uuid, data, ex=expire_time)
         # update _data pseudo private variable
         # it will be returned by data property method
         self._data = {"uuid": instance_uuid}

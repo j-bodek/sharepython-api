@@ -172,3 +172,10 @@ SIMPLE_JWT = {
     "TOKEN_OBTAIN_SERIALIZER": "jwt_auth.serializers.TokenObtainPairSerializer",
     "USER_ID_FIELD": "uuid",
 }
+
+# Define time after which redis will clear
+# unused codespace
+CODESPACE_REDIS_EXPIRE_TIME = 30
+# Define time after which redis will clear
+# unused temporary codespace
+TMP_CODESPACE_REDIS_EXPIRE_TIME = 15
