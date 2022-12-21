@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 import uuid
 from django.utils import timezone
+from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 
 
@@ -18,6 +19,7 @@ class CodeSpace(models.Model):
     )
     name = models.CharField(
         _("name"),
+        default=lambda: datetime.now().strftime("%b %d %I:%M %p"),
         max_length=255,
         blank=False,
         null=False,
@@ -31,13 +33,11 @@ class CodeSpace(models.Model):
     )
     shared_with = models.ManyToManyField(
         get_user_model(),
-        null=True,
-        blank=True,
         related_name="shared_codespaces",
     )
     created_at = models.DateTimeField(
         _("date created"),
-        default=timezone.now,
+        default=datetime.now,
         editable=False,
     )
     updated_at = models.DateTimeField(

@@ -27,4 +27,5 @@ urlpatterns = [
     ),
     path("api/auth/", include("jwt_auth.urls")),
     path("api/", include("users.urls")),
+    path("api/", include("codespace.urls")),
 ]

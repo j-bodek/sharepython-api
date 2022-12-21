@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from core.models import User
+from django.contrib.admin import ModelAdmin
+from core.models import User, CodeSpace
 from django.utils.translation import gettext_lazy as _
 
 
@@ -41,4 +42,36 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+class CodeSpaceAdmin(ModelAdmin):
+    ordering = ["created_at"]
+    list_display = [
+        "uuid",
+        "name",
+        "created_by",
+        "created_at",
+        "updated_at",
+    ]
+    fieldsets = (
+        (
+            _("General"),
+            {"fields": ("name",)},
+        ),
+        (
+            _("Connected Users"),
+            {"fields": ("created_by",)},
+        ),
+        (
+            _("Important dates"),
+            {"fields": ("created_at", "updated_at")},
+        ),
+    )
+    readonly_fields = [
+        "uuid",
+        "created_by",
+        "created_at",
+        "updated_at",
+    ]
+
+
+admin.site.register(CodeSpace, CodeSpaceAdmin)
 admin.site.register(User, UserAdmin)

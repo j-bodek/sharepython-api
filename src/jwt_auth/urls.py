@@ -8,6 +8,7 @@ from jwt_auth.views import (
     RegisterView,
 )
 
+app_name = "jwt_auth"
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
