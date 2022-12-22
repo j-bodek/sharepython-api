@@ -1,4 +1,4 @@
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from core.signals import post_get
 from django.dispatch import receiver
 from core.models import CodeSpace
@@ -21,14 +21,7 @@ def codespace_post_delete_handler(
     REDIS.delete(instance_uuid)
 
 
-@receiver(post_get, sender=CodeSpace)
-def codespace_post_get_handler(sender: CodeSpace, instance: Type[CodeSpace], **kwargs):
-    """
-    This signals is used to set CodeSpace
-    data in redis after geting specific CodeSpace
-    from database
-    """
-
+def save_codespace_data_to_redis(sender, instance) -> None:
     redis_key = str(getattr(instance, sender.redis_store_key))
 
     # if data for redis_key already exists
@@ -41,3 +34,27 @@ def codespace_post_get_handler(sender: CodeSpace, instance: Type[CodeSpace], **k
         REDIS.hmset(redis_key, redis_data)
 
     REDIS.expire(redis_key, settings.CODESPACE_REDIS_EXPIRE_TIME)
+
+
+@receiver(post_get, sender=CodeSpace)
+def codespace_post_get_handler(sender: CodeSpace, instance: Type[CodeSpace], **kwargs):
+    """
+    This signals is used to set CodeSpace
+    data in redis after geting specific CodeSpace
+    from database
+    """
+
+    save_codespace_data_to_redis(sender, instance)
+
+
+@receiver(post_save, sender=CodeSpace)
+def codespace_post_save_handler(
+    sender: CodeSpace, instance: Type[CodeSpace], created: bool, **kwargs
+):
+    """
+    This signals is used to set CodeSpace
+    data in redis after creating new CodeSpace
+    """
+
+    if created:
+        save_codespace_data_to_redis(sender, instance)
