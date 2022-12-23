@@ -4,9 +4,12 @@ import uuid
 from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 from src import REDIS
-from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
-from core.signals import post_get
+from core.manager import CodeSpaceManager, TmpCodeSpaceManager
+from django.conf import settings
+from django.core.exceptions import (
+    ObjectDoesNotExist,
+)
 
 
 def get_default_code_value() -> str:
@@ -73,22 +76,6 @@ class CodeSpaceBase(models.base.ModelBase):
         attrs.update({"redis_store_fields": redis_store_fields})
 
         return super().__new__(cls, name, bases, attrs, **kwargs)
-
-
-class CodeSpaceQuerySet(QuerySet):
-    """
-    Custom QuerySet class which send 'post_get'
-    signal every time get method is called
-    """
-
-    def get(self, *args, **kwargs):
-        instance = super().get(*args, **kwargs)
-        post_get.send(sender=type(instance), instance=instance)
-        return instance
-
-
-class CodeSpaceManager(models.manager.BaseManager.from_queryset(CodeSpaceQuerySet)):
-    pass
 
 
 class CodeSpace(models.Model, metaclass=CodeSpaceBase):
@@ -159,3 +146,81 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
             return data.get(name)
         else:
             return None
+
+
+class TmpCodeSpaceBase(type):
+    """
+    TmpCodeSpace metaclass
+    """
+
+    def __new__(cls, name, bases, attrs, **kwargs):
+        """
+        In __new__ method set model attribute in class manager,
+        set DoesNotExist exception
+        """
+
+        if not (manager := attrs.get("objects")):
+            raise ImproperlyConfigured(f"{cls} must have 'objects' class attribute")
+
+        new_class = super().__new__(cls, name, bases, attrs, **kwargs)
+
+        # set manager model attribute
+        manager.model = new_class
+        module = attrs.get("__module__", "")
+
+        # set DoesNotExist exception
+        setattr(
+            new_class,
+            "DoesNotExist",
+            models.base.subclass_exception(
+                "DoesNotExist",
+                (ObjectDoesNotExist,),
+                module,
+                attached_to=new_class,
+            ),
+        )
+
+        return new_class
+
+
+class TmpCodeSpace(object, metaclass=TmpCodeSpaceBase):
+    """
+    This class represents temporary codespace which
+    is saved only in redis
+    """
+
+    objects = TmpCodeSpaceManager()
+    redis_store_key = "uuid"
+    redis_store_fields = ["code"]
+
+    def __init__(self, uuid: str, code=None, *args, **kwargs) -> None:
+        self.uuid = uuid
+        self.code = code or get_default_code_value()
+
+    def to_python(self) -> dict:
+        """
+        Returns dict representation of instance
+        """
+
+        data = {key: getattr(self, key) for key in self.redis_store_fields}
+        data.update({self.redis_store_key: getattr(self, self.redis_store_key)})
+        return data
+
+    def save(self) -> None:
+        """
+        Used only once when creating new tmp codespace.
+        If codespace edit nothing will happen
+        """
+        redis_key = str(getattr(self, self.redis_store_key))
+        if not REDIS.exists(redis_key):
+            REDIS.hmset(redis_key, self.to_python())
+
+        REDIS.expire(redis_key, settings.TMP_CODESPACE_REDIS_EXPIRE_TIME)
+
+    def delete(self) -> None:
+        """
+        Delete tmp codespace data from redis
+        """
+
+        redis_key = str(self, self.redis_store_key)
+        REDIS.delete(redis_key)
