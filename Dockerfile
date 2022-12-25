@@ -17,13 +17,19 @@ RUN python -m venv /py && \
     apk add --update --no-cache postgresql-client && \
     apk add --update --no-cache --virtual .tmp-build-deps \
     build-base postgresql-dev musl-dev && \
+    # https://cryptography.io/en/latest/installation/#building-cryptography-on-linux
+    apk add --update --no-cache libressl-dev musl-dev libffi-dev && \
     /py/bin/pip install -r /tmp/requirements.txt && \
     # if DEV arg is set to true install requirements.dev
     if [ $DEV = "true" ]; \
     then /py/bin/pip install -r /tmp/requirements.dev.txt; \
     fi && \
     rm -rf /tmp && \
-    apk del .tmp-build-deps && \
+    apk del \
+    libressl-dev \
+    musl-dev \
+    libffi-dev \
+    .tmp-build-deps && \
     # add user to docker image (to don't have to use root user)
     adduser \
     --disabled-password \
