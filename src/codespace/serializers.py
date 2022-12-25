@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from core.models import CodeSpace, TmpCodeSpace
+from codespace.tokens import codespace_access_token_generator
 import uuid
 
 
@@ -38,3 +39,24 @@ class TmpCodeSpaceSerializer(serializers.Serializer):
         tmp_codespace = TmpCodeSpace(**validated_data)
         tmp_codespace.save()
         return tmp_codespace
+
+
+class TokenAccessCodeSpaceSerializer(serializers.Serializer):
+    """
+    Serializer for access codespace token
+    """
+
+    token_generator = codespace_access_token_generator
+    codespace_uuid = serializers.UUIDField(required=True)
+    expire_time = serializers.IntegerField(required=True)
+
+    @classmethod
+    def get_token(cls, codespace_uuid: str, expire_time: int):
+        return cls.token_generator.make_token(codespace_uuid, expire_time)
+
+    def validate(self, attrs) -> dict:
+        data = super().validate(attrs)
+        token = self.get_token(data.get("codespace_uuid"), data.get("expire_time"))
+        data = {"token": token}
+
+        return data
