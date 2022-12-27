@@ -19,14 +19,14 @@ class TestTokenVerifyView(TestCase):
     def test_with_invalid_token(self):
         """expect to return 401"""
 
-        res = self.client.get(reverse("token_verify"))
+        res = self.client.get(reverse("jwt_auth:token_verify"))
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_with_valid_token(self):
         """expect to return 200"""
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
-        res = self.client.get(reverse("token_verify"))
+        res = self.client.get(reverse("jwt_auth:token_verify"))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
@@ -48,14 +48,14 @@ class TestRegisterView(TestCase):
         """Should return 403"""
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
-        res = self.client.post(reverse("register"), self.valid_register_data)
+        res = self.client.post(reverse("jwt_auth:register"), self.valid_register_data)
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_partial_request_data(self):
         """Should return 400"""
 
         res = self.client.post(
-            reverse("register"),
+            reverse("jwt_auth:register"),
             {"first_name": "John", "last_name": "Doe"},
         )
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -64,7 +64,7 @@ class TestRegisterView(TestCase):
         """Should return 200, tokens and create new user"""
 
         res = self.client.post(
-            reverse("register"),
+            reverse("jwt_auth:register"),
             self.valid_register_data,
         )
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)

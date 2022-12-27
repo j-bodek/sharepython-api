@@ -21,7 +21,7 @@ class TestRetrieveUpdateDestroyUserView(TestCase):
     def test_can_delete_user(self):
         """Test if view can delete user"""
 
-        res = self.client.delete(reverse("retrieve_update_destroy_user"))
+        res = self.client.delete(reverse("users:retrieve_update_destroy_user"))
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
         with self.assertRaises(get_user_model().DoesNotExist):
             get_user_model().objects.get(email="test@example.com")
@@ -29,7 +29,7 @@ class TestRetrieveUpdateDestroyUserView(TestCase):
     def test_can_retrieve_user(self):
         """Test if can retrieve user data"""
 
-        res = self.client.get(reverse("retrieve_update_destroy_user"))
+        res = self.client.get(reverse("users:retrieve_update_destroy_user"))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data["uuid"], str(self.user.uuid))
 
@@ -37,7 +37,7 @@ class TestRetrieveUpdateDestroyUserView(TestCase):
         """Test if can update user"""
 
         res = self.client.patch(
-            reverse("retrieve_update_destroy_user"), {"first_name": "John"}
+            reverse("users:retrieve_update_destroy_user"), {"first_name": "John"}
         )
         self.user.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
