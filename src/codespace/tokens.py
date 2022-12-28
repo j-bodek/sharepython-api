@@ -1,5 +1,5 @@
 from django.conf import settings
-from typing import Tuple, Union
+from typing import Type, Tuple, Union
 import hashlib
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
@@ -14,7 +14,7 @@ class CodeSpaceAccessToken(object):
     """
 
     @property
-    def secret(self) -> bytes:
+    def __secret(self) -> bytes:
         """
         Return django secret key hashed using sha256
         as 32 bytes
@@ -29,7 +29,7 @@ class CodeSpaceAccessToken(object):
         """
         token_hash = self.__make_token_hash(uuid, expire_time)
         nonce = secrets.token_bytes(12)
-        token = nonce + AESGCM(self.secret).encrypt(
+        token = nonce + AESGCM(self.__secret).encrypt(
             nonce=nonce,
             data=str.encode(token_hash),
             associated_data=b"",
@@ -42,7 +42,7 @@ class CodeSpaceAccessToken(object):
         Return encrypted values (uuid, timestampe)
         """
         token = base64.urlsafe_b64decode(token.encode())
-        decrypted_token = AESGCM(self.secret).decrypt(token[:12], token[12:], b"")
+        decrypted_token = AESGCM(self.__secret).decrypt(token[:12], token[12:], b"")
         return decrypted_token.decode("utf8").split(":")
 
     def __make_token_hash(self, uuid: str, expire_time: int) -> str:
@@ -53,9 +53,13 @@ class CodeSpaceAccessToken(object):
         Return expire date timestamp
         """
 
-        expire_date = datetime.now() + timedelta(seconds=expire_time)
+        expire_date = self._now() + timedelta(seconds=expire_time)
         timestamp = int(datetime.timestamp(expire_date))
         return timestamp
+
+    def _now(self) -> Type[datetime]:
+        """This method will be used for mocking in tests"""
+        return datetime.datetime.now()
 
 
 codespace_access_token_generator = CodeSpaceAccessToken()
