@@ -40,6 +40,15 @@ class TmpCodeSpaceSerializer(serializers.Serializer):
         tmp_codespace.save()
         return tmp_codespace
 
+    def validate(self, attrs) -> dict:
+        """used to add 'tmp-' prefix for uuid field"""
+        data = super().validate(attrs)
+
+        if not str(data.get("uuid", "")).startswith("tmp-"):
+            data.update({"uuid": f"tmp-{data.get('uuid')}"})
+
+        return data
+
 
 class TokenAccessCodeSpaceSerializer(serializers.Serializer):
     """
