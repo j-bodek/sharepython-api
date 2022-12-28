@@ -1,1 +1,2 @@
 flake8>=5
+fakeredis>=2.4.0

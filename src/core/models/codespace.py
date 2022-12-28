@@ -142,6 +142,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
         """
 
         key = str(getattr(self, self.redis_store_key))
+
         if data := REDIS.hgetall(key):
             return data.get(name)
         else:
@@ -222,5 +223,5 @@ class TmpCodeSpace(object, metaclass=TmpCodeSpaceBase):
         Delete tmp codespace data from redis
         """
 
-        redis_key = str(self, self.redis_store_key)
+        redis_key = str(getattr(self, self.redis_store_key))
         REDIS.delete(redis_key)

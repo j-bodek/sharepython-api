@@ -28,7 +28,8 @@ def save_codespace_data_to_redis(sender, instance) -> None:
     # just update expiration time
     if not REDIS.exists(redis_key):
         redis_data = {
-            key: str(getattr(instance, key)) for key in sender.redis_store_fields.keys()
+            str(key): str(getattr(instance, key))
+            for key in sender.redis_store_fields.keys()
         }
 
         REDIS.hmset(redis_key, redis_data)
