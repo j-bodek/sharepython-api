@@ -2,8 +2,8 @@ from django.urls import path, re_path
 from codespace.views import (
     CreateCodeSpaceView,
     RetrieveCodeSpaceView,
-    TokenCodeSpaceAccessView,
     RetrieveCodeSpaceAccessTokenView,
+    TokenCodeSpaceAccessCreateView,
     TokenCodeSpaceAccessVerifyView,
 )
 
@@ -23,7 +23,7 @@ urlpatterns = [
     ),
     path(
         "codespace/access/token/",
-        TokenCodeSpaceAccessView.as_view(),
+        TokenCodeSpaceAccessCreateView.as_view(),
         name="token_codespace_access",
     ),
     path(

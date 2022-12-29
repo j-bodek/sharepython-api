@@ -59,7 +59,7 @@ class CodeSpaceAccessToken(object):
 
     def _now(self) -> Type[datetime]:
         """This method will be used for mocking in tests"""
-        return datetime.datetime.now()
+        return datetime.now()
 
 
 codespace_access_token_generator = CodeSpaceAccessToken()

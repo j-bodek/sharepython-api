@@ -3,4 +3,7 @@ from .codespace import (  # noqa
     RetrieveCodeSpaceView,
     RetrieveCodeSpaceAccessTokenView,
 )
-from .share import TokenCodeSpaceAccessView, TokenCodeSpaceAccessVerifyView  # noqa
+from .share import (
+    TokenCodeSpaceAccessCreateView,
+    TokenCodeSpaceAccessVerifyView,
+)  # noqa

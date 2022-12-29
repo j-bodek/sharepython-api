@@ -5,7 +5,7 @@ from codespace.serializers import TokenAccessCodeSpaceSerializer
 from typing import Type
 
 
-class TokenCodeSpaceAccessView(generics.GenericAPIView):
+class TokenCodeSpaceAccessCreateView(generics.GenericAPIView):
     """
     Takes codespace_uuid and expire_time (in seconds) and returns
     token that can be used to share codespace for specified time period
