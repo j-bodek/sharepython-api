@@ -2,7 +2,7 @@ from django.urls import path, re_path
 from codespace.views import (
     CreateCodeSpaceView,
     CodeSpaceListView,
-    RetrieveCodeSpaceView,
+    RetrieveDestroyCodeSpaceView,
     RetrieveCodeSpaceAccessTokenView,
     TokenCodeSpaceAccessCreateView,
     TokenCodeSpaceAccessVerifyView,
@@ -13,8 +13,8 @@ urlpatterns = [
     path("codespace/", CreateCodeSpaceView.as_view(), name="create_codespace"),
     re_path(
         r"codespace/(?P<uuid>(tmp-)?[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12})/",  # noqa
-        RetrieveCodeSpaceView.as_view(),
-        name="retrieve_codespace",
+        RetrieveDestroyCodeSpaceView.as_view(),
+        name="retrieve_destroy_codespace",
     ),
     # Big thx https://stackoverflow.com/a/5885097/14579046
     re_path(

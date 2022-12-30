@@ -105,7 +105,9 @@ class TestRetrieveCodeSpaceView(TestCase):
             uuid=codespace_uuid, code="test_code"
         )
         r = self.client.get(
-            reverse("codespace:retrieve_codespace", kwargs={"uuid": codespace_uuid})
+            reverse(
+                "codespace:retrieve_destroy_codespace", kwargs={"uuid": codespace_uuid}
+            )
         )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data.get("uuid"), codespace_uuid)
@@ -118,7 +120,8 @@ class TestRetrieveCodeSpaceView(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
         r = self.client.get(
             reverse(
-                "codespace:retrieve_codespace", kwargs={"uuid": str(codespace.uuid)}
+                "codespace:retrieve_destroy_codespace",
+                kwargs={"uuid": str(codespace.uuid)},
             )
         )
         self.assertEqual(r.status_code, 200)
@@ -129,9 +132,25 @@ class TestRetrieveCodeSpaceView(TestCase):
         """Test retrieving data of codespace without either IsAuthenticated or IsOwner permission"""
 
         r = self.client.get(
-            reverse("codespace:retrieve_codespace", kwargs={"uuid": str(uuid.uuid4())})
+            reverse(
+                "codespace:retrieve_destroy_codespace",
+                kwargs={"uuid": str(uuid.uuid4())},
+            )
         )
         self.assertEqual(r.status_code, 401)
+
+    def test_deleting_codespace(self):
+        codespace = CodeSpace.objects.create(created_by=self.user)
+        codespace_uuid = codespace.uuid
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        r = self.client.delete(
+            reverse(
+                "codespace:retrieve_destroy_codespace",
+                kwargs={"uuid": str(codespace.uuid)},
+            )
+        )
+        self.assertEqual(r.status_code, 204)
+        self.assertFalse(CodeSpace.objects.filter(uuid=codespace_uuid).exists())
 
 
 class TestCodeSpaceListView(TestCase):

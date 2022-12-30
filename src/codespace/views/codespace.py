@@ -40,8 +40,12 @@ class CreateCodeSpaceView(generics.CreateAPIView):
         serializer.save(created_by=self.request.user)
 
 
-class RetrieveCodeSpaceView(generics.RetrieveAPIView):
-    """View used to retrieve codespace data."""
+class CodeSpaceDeleteView(generics.DestroyAPIView):
+    """View used to delete Specified CodeSpace"""
+
+
+class RetrieveDestroyCodeSpaceView(generics.RetrieveDestroyAPIView):
+    """View used to retrieve or delete codespace data."""
 
     # Regular codespace
     codespace_class = CodeSpace
