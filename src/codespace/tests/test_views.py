@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from core.models import TmpCodeSpace, CodeSpace
 from codespace.tokens import codespace_access_token_generator
 import datetime
+from typing import Type
 
 
 class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
@@ -131,6 +132,29 @@ class TestRetrieveCodeSpaceView(TestCase):
             reverse("codespace:retrieve_codespace", kwargs={"uuid": str(uuid.uuid4())})
         )
         self.assertEqual(r.status_code, 401)
+
+
+class TestCodeSpaceListView(TestCase):
+    """Test CodeSpaceListView"""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email="test@example.com", password="test_password"
+        )
+        self.token = AccessToken().for_user(self.user)
+        self.client = APIClient()
+
+    def create_codespace(self, user: Type[get_user_model], **params) -> Type[CodeSpace]:
+        """Helper function which create codespace"""
+        return CodeSpace.objects.create(created_by=user, **params)
+
+    def test_retrieve_codespaces_data(self):
+        self.create_codespace(user=self.user)
+        self.create_codespace(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        r = self.client.get(reverse("codespace:list_codespaces"))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.data), 2)
 
 
 class TestRetrieveCodeSpaceAccessTokenView(TestCase):

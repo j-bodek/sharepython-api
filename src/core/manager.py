@@ -1,7 +1,7 @@
 from django.db import models
 from core.query import CodeSpaceQuerySet
 from src import REDIS
-
+from django.conf import settings
 
 class CodeSpaceManager(models.manager.BaseManager.from_queryset(CodeSpaceQuerySet)):
     pass
@@ -23,6 +23,10 @@ class TmpCodeSpaceManager(object):
         if not (uuid := kwargs.get("uuid", "")) or not REDIS.exists(uuid):
             raise self.model.DoesNotExist("matching query does not exist.")
 
+        # update expire time
+        REDIS.expire(uuid, settings.TMP_CODESPACE_REDIS_EXPIRE_TIME)
+        # get data
         data = REDIS.hgetall(uuid)
+        
         # return model instance
-        return self.model(uuid=uuid, **{str(k): str(v) for k, v in data.items()})
+        return self.model(**{str(k): str(v) for k, v in data.items()})

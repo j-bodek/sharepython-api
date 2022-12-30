@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from rest_framework import status
 from typing import Type, Union, List
+from django.db.models.query import QuerySet
 
 
 class CreateCodeSpaceView(generics.CreateAPIView):
@@ -92,6 +93,20 @@ class RetrieveCodeSpaceView(generics.RetrieveAPIView):
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)
         return obj
+
+
+class CodeSpaceListView(generics.ListAPIView):
+    """View used to get list of codespaces created by authenticated user"""
+
+    serializer_class = CodeSpaceSerializer
+    queryset = CodeSpace.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self) -> Type[QuerySet]:
+        """Return a queryset of CodeSpace created by authenticated user"""
+        return self.queryset.filter(
+            created_by=self.request.user,
+        ).order_by("-created_at")
 
 
 class RetrieveCodeSpaceAccessTokenView(generics.RetrieveAPIView):

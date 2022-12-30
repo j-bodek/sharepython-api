@@ -118,6 +118,7 @@ class TmpCodeSpaceTests(SimpleTestCase):
         """Test if objects.get() return TmpCodeSpace instance"""
         patched_redis.exists.return_value = True
         patched_redis.hgetall.return_value = {
+            "uuid":"mocked_uuid",
             "code": "mocked_code",
         }
         tmp_codespace = TmpCodeSpace.objects.get(uuid="mocked_uuid")
