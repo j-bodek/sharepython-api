@@ -1,8 +1,60 @@
 from django.test import SimpleTestCase
-from unittest.mock import patch
-from codespace.serializers import TmpCodeSpaceSerializer, TokenAccessCodeSpaceSerializer
-from core.models import TmpCodeSpace
+from rest_framework import serializers
+from unittest.mock import patch, Mock
+from codespace.serializers import (
+    CodeSpaceSerializer,
+    TmpCodeSpaceSerializer,
+    TokenAccessCodeSpaceSerializer,
+)
+from core.models import TmpCodeSpace, CodeSpace
 import uuid
+import datetime
+
+
+class TestCodeSpaceSerializer(SimpleTestCase):
+    """Test CodeSpace Serializer"""
+
+    def setUp(self):
+        self.serializer = CodeSpaceSerializer
+        self.uuid = str(uuid.uuid4())
+        self.mocked_codespace_data = {
+            "uuid": self.uuid,
+            "name": "test_name",
+            "code": "test_code",
+            "created_by": "user",
+            "created_at": datetime.datetime.now(),
+            "updated_at": datetime.datetime.now(),
+        }
+
+    def test_with_fields_query_param(self):
+        mocked_request = Mock()
+        fields = ["uuid", "name"]
+        mocked_request.query_params = {"fields": ",".join(fields)}
+
+        mocked_codespace = Mock(spec=CodeSpace)
+        for key, value in self.mocked_codespace_data.items():
+            setattr(mocked_codespace, key, value)
+        serializer = self.serializer(
+            mocked_codespace, context={"request": mocked_request}
+        )
+        self.assertEqual(list(serializer.data.keys()), fields)
+        self.assertEqual(serializer.data.get("uuid"), mocked_codespace.uuid)
+        self.assertEqual(serializer.data.get("name"), mocked_codespace.name)
+
+    def test_with_invalid_fields_query_param(self):
+        mocked_request = Mock()
+        fields = ["uuid", "name", "invalid_field"]
+        mocked_request.query_params = {"fields": ",".join(fields)}
+
+        mocked_codespace = Mock(spec=CodeSpace)
+        for key, value in self.mocked_codespace_data.items():
+            setattr(mocked_codespace, key, value)
+
+        serializer = self.serializer(
+            mocked_codespace, context={"request": mocked_request}
+        )
+        with self.assertRaises(serializers.ValidationError):
+            serializer.data
 
 
 class TestTmpCodeSpaceSerializer(SimpleTestCase):

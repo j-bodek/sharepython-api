@@ -160,6 +160,8 @@ class TestCodeSpaceListView(TestCase):
         self.user = get_user_model().objects.create_user(
             email="test@example.com", password="test_password"
         )
+        self.create_codespace(user=self.user)
+        self.create_codespace(user=self.user)
         self.token = AccessToken().for_user(self.user)
         self.client = APIClient()
 
@@ -168,8 +170,7 @@ class TestCodeSpaceListView(TestCase):
         return CodeSpace.objects.create(created_by=user, **params)
 
     def test_retrieve_codespaces_data(self):
-        self.create_codespace(user=self.user)
-        self.create_codespace(user=self.user)
+
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
         r = self.client.get(reverse("codespace:list_codespaces"))
         self.assertEqual(r.status_code, 200)

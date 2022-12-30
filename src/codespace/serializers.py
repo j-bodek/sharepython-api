@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from core.models import CodeSpace, TmpCodeSpace
 from codespace.tokens import codespace_access_token_generator
+from collections import OrderedDict
 import uuid
 
 
@@ -21,6 +22,29 @@ class CodeSpaceSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+    def get_fields(self):
+        """
+        Returns a dictionary of {field_name: field_instance}.
+        Allows user to specify "fields" query parameter to return
+        only subset of fields
+        """
+
+        declared_fields = super().get_fields()
+
+        if fields := self.context["request"].query_params.get("fields"):
+            field_names = fields.split(",")
+            # Determine the fields that should be included on the serializer.
+            fields = OrderedDict()
+            for field_name in field_names:
+                if field_name in declared_fields:
+                    fields[field_name] = declared_fields[field_name]
+                else:
+                    raise serializers.ValidationError(f"Unknown field - {field_name}")
+
+            return fields
+        else:
+            return declared_fields
 
 
 class TmpCodeSpaceSerializer(serializers.Serializer):
