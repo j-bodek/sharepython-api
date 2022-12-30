@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, exceptions
 from codespace.serializers import CodeSpaceSerializer, TmpCodeSpaceSerializer
 from codespace.permissions import IsCodeSpaceOwner, IsCodeSpaceAccessTokenValid
+from codespace.pagination import PageNumberPagination
 from rest_framework.response import Response
 from core.models import CodeSpace, TmpCodeSpace
 from django.shortcuts import get_object_or_404
@@ -38,10 +39,6 @@ class CreateCodeSpaceView(generics.CreateAPIView):
         self, serializer: Union[Type[CodeSpaceSerializer], Type[TmpCodeSpaceSerializer]]
     ) -> None:
         serializer.save(created_by=self.request.user)
-
-
-class CodeSpaceDeleteView(generics.DestroyAPIView):
-    """View used to delete Specified CodeSpace"""
 
 
 class RetrieveDestroyCodeSpaceView(generics.RetrieveDestroyAPIView):
@@ -105,6 +102,7 @@ class CodeSpaceListView(generics.ListAPIView):
     serializer_class = CodeSpaceSerializer
     queryset = CodeSpace.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = PageNumberPagination
 
     def get_queryset(self) -> Type[QuerySet]:
         """Return a queryset of CodeSpace created by authenticated user"""
