@@ -26,7 +26,7 @@ urlpatterns = [
     re_path(
         r"codespace/(?P<token>(?:[a-zA-Z0-9_-]{4})*(?:[a-zA-Z0-9_-]{2}==|[a-zA-Z0-9_-]{3}=|[a-zA-Z0-9_-]{4}))/",  # noqa
         RetrieveCodeSpaceAccessTokenView.as_view(),
-        name="retrieve_tmp_codespace_access_token",
+        name="retrieve_codespace_access_token",
     ),
     path(
         "codespaces/",

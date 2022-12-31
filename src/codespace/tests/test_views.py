@@ -86,8 +86,8 @@ class TestCreateCodeSpaceView(TestCase):
         self.assertEqual(patched_tmpcodespace_save.call_count, 1)
 
 
-class TestRetrieveCodeSpaceView(TestCase):
-    """Test RetrieveCodeSpaceView"""
+class TestRetrieveUpdateDestroyCodeSpaceView(TestCase):
+    """Test RetrieveUpdateDestroyCodeSpaceView"""
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -96,23 +96,6 @@ class TestRetrieveCodeSpaceView(TestCase):
         self.token = AccessToken().for_user(self.user)
         self.client = APIClient()
 
-    @patch("codespace.views.codespace.TmpCodeSpace.objects.get")
-    def test_retrieve_tmp_codespace(self, patched_objects_get):
-        """Test retrieving data of tmp codespace"""
-
-        codespace_uuid = f"tmp-{uuid.uuid4()}"
-        patched_objects_get.return_value = TmpCodeSpace(
-            uuid=codespace_uuid, code="test_code"
-        )
-        r = self.client.get(
-            reverse(
-                "codespace:retrieve_destroy_codespace", kwargs={"uuid": codespace_uuid}
-            )
-        )
-        self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.data.get("uuid"), codespace_uuid)
-        self.assertEqual(r.data.get("code"), "test_code")
-
     def test_retrieve_codespace(self):
         """Test retrieving data of codespace model"""
 
@@ -120,7 +103,7 @@ class TestRetrieveCodeSpaceView(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
         r = self.client.get(
             reverse(
-                "codespace:retrieve_destroy_codespace",
+                "codespace:retrieve_update_destroy_codespace",
                 kwargs={"uuid": str(codespace.uuid)},
             )
         )
@@ -133,7 +116,7 @@ class TestRetrieveCodeSpaceView(TestCase):
 
         r = self.client.get(
             reverse(
-                "codespace:retrieve_destroy_codespace",
+                "codespace:retrieve_update_destroy_codespace",
                 kwargs={"uuid": str(uuid.uuid4())},
             )
         )
@@ -145,12 +128,37 @@ class TestRetrieveCodeSpaceView(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
         r = self.client.delete(
             reverse(
-                "codespace:retrieve_destroy_codespace",
+                "codespace:retrieve_update_destroy_codespace",
                 kwargs={"uuid": str(codespace.uuid)},
             )
         )
         self.assertEqual(r.status_code, 204)
         self.assertFalse(CodeSpace.objects.filter(uuid=codespace_uuid).exists())
+
+
+class TestRetrieveDestroyTmpCodeSpaceView(SimpleTestCase):
+    """Test RetrieveDestroyTmpCodeSpaceView"""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    @patch("codespace.views.codespace.TmpCodeSpace.objects.get")
+    def test_retrieve_tmp_codespace(self, patched_objects_get):
+        """Test retrieving data of tmp codespace"""
+
+        codespace_uuid = f"tmp-{uuid.uuid4()}"
+        patched_objects_get.return_value = TmpCodeSpace(
+            uuid=codespace_uuid, code="test_code"
+        )
+        r = self.client.get(
+            reverse(
+                "codespace:retrieve_destroy_tmp_codespace",
+                kwargs={"tmp_uuid": codespace_uuid},
+            )
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data.get("uuid"), codespace_uuid)
+        self.assertEqual(r.data.get("code"), "test_code")
 
 
 class TestCodeSpaceListView(TestCase):
@@ -188,11 +196,14 @@ class TestRetrieveCodeSpaceAccessTokenView(TestCase):
         """Test retrievieng codespace data with valid token"""
         codespace_uuid = uuid.uuid4()
         token = self.token_generator.make_token(codespace_uuid, 120)
+        mocked_user = Mock()
+        mocked_user.first_name = "John"
+        mocked_user.last_name = "Doe"
         mocked_codespace_data = {
             "uuid": codespace_uuid,
             "name": "test_name",
             "code": "test_code",
-            "created_by": "user",
+            "created_by": mocked_user,
             "created_at": datetime.datetime.now(),
             "updated_at": datetime.datetime.now(),
         }
