@@ -1,7 +1,8 @@
 from .codespace import (  # noqa
     CreateCodeSpaceView,
     CodeSpaceListView,
-    RetrieveDestroyCodeSpaceView,
+    RetrieveUpdateDestroyCodeSpaceView,
+    RetrieveDestroyTmpCodeSpaceView,
     RetrieveCodeSpaceAccessTokenView,
 )
 from .share import (  # noqa

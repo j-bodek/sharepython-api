@@ -7,7 +7,7 @@ from core.models import CodeSpace, TmpCodeSpace
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from rest_framework import status
-from typing import Type, Union, List
+from typing import Type, Union
 from django.db.models.query import QuerySet
 
 
@@ -41,61 +41,6 @@ class CreateCodeSpaceView(generics.CreateAPIView):
         serializer.save(created_by=self.request.user)
 
 
-class RetrieveDestroyCodeSpaceView(generics.RetrieveDestroyAPIView):
-    """View used to retrieve or delete codespace data."""
-
-    # Regular codespace
-    codespace_class = CodeSpace
-    codespace_serializer_class = CodeSpaceSerializer
-    codespace_permission_classes = (permissions.IsAuthenticated, IsCodeSpaceOwner)
-
-    # Tmp codespace
-    tmp_codespace_class = TmpCodeSpace
-    tmp_codespace_serializer_class = TmpCodeSpaceSerializer
-    tmp_codespace_permission_classes = (permissions.AllowAny,)
-
-    def get_permissions(self) -> List[Type[permissions.BasePermission]]:
-        """
-        Instantiates and returns the list of permissions
-        depending of codespace type
-        """
-
-        if self.kwargs.get("uuid", "").startswith("tmp-"):
-            return [
-                permission() for permission in self.tmp_codespace_permission_classes
-            ]
-        else:
-            return [permission() for permission in self.codespace_permission_classes]
-
-    def get_serializer_class(
-        self,
-    ) -> Union[Type[CodeSpaceSerializer], Type[TmpCodeSpaceSerializer]]:
-        """
-        Return either codespace or tmp codespace
-        serializer class
-        """
-
-        obj_uuid = self.kwargs.get("uuid", "")
-        if obj_uuid.startswith("tmp-"):
-            return self.tmp_codespace_serializer_class
-        else:
-            return self.codespace_serializer_class
-
-    def get_object(self) -> Union[Type[CodeSpace], Type[TmpCodeSpace], None]:
-        obj_uuid = self.kwargs.get("uuid", "")
-        if obj_uuid.startswith("tmp-"):
-            try:
-                obj = TmpCodeSpace.objects.get(uuid=obj_uuid)
-            except TmpCodeSpace.DoesNotExist as e:
-                raise Http404(e)
-        else:
-            obj = get_object_or_404(CodeSpace, uuid=obj_uuid)
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-        return obj
-
-
 class CodeSpaceListView(generics.ListAPIView):
     """View used to get list of codespaces created by authenticated user"""
 
@@ -109,6 +54,40 @@ class CodeSpaceListView(generics.ListAPIView):
         return self.queryset.filter(
             created_by=self.request.user,
         ).order_by("-created_at")
+
+
+class RetrieveUpdateDestroyCodeSpaceView(generics.RetrieveUpdateDestroyAPIView):
+    """View used to retrieve, update or delete regular codespace data."""
+
+    serializer_class = CodeSpaceSerializer
+    permission_classes = (permissions.IsAuthenticated, IsCodeSpaceOwner)
+
+    def get_object(self) -> Union[Type[CodeSpace], None]:
+        obj_uuid = self.kwargs.get("uuid", "")
+        obj = get_object_or_404(CodeSpace, uuid=obj_uuid)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
+class RetrieveDestroyTmpCodeSpaceView(generics.RetrieveDestroyAPIView):
+    """View used to retrieve or delete temporary codespace data."""
+
+    serializer_class = TmpCodeSpaceSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def get_object(self) -> Union[Type[CodeSpace], None]:
+        obj_uuid = self.kwargs.get("tmp_uuid", "")
+
+        try:
+            obj = TmpCodeSpace.objects.get(uuid=obj_uuid)
+        except TmpCodeSpace.DoesNotExist as e:
+            raise Http404(e)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
 class RetrieveCodeSpaceAccessTokenView(generics.RetrieveAPIView):
