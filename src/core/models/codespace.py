@@ -119,6 +119,17 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
         auto_now=True,
     )
 
+    def __setattr__(self, name, value):
+        """
+        Override setattr method to also update data
+        stored in redis
+        """
+
+        if name != "redis_store_fields" and name in self.redis_store_fields:
+            self.__redis_setter(name, value)
+
+        super().__setattr__(name, value)
+
     def __getattribute__(self, name):
         """
         Override gettattribute method to return value
@@ -134,9 +145,22 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
         return super().__getattribute__(name)
 
+    def __redis_setter(self, name, value):
+        """
+        Update key value stored in redis
+        """
+
+        key = str(getattr(self, self.redis_store_key))
+
+        if (data := REDIS.hgetall(key)) and data.get(name):
+            data[name] = value
+            REDIS.hmset(key, data)
+        else:
+            return None
+
     def __redis_getter(self, name):
         """
-        Try to return value saved in redis
+        Try to return value stored in redis
         """
 
         key = str(getattr(self, self.redis_store_key))
