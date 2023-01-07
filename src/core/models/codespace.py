@@ -82,7 +82,12 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
     """
 
     redis_store_key = "uuid"
+    # list of fields that will be stored in redis
     redis_store_fields = ["name", "code"]
+    # list of fields that after setattribute will be changed in redis
+    # this will be used to prevent from updating code value by serializers
+    redis_settable_fields = ["name"]
+
     objects = CodeSpaceManager()
 
     uuid = models.UUIDField(
@@ -125,7 +130,11 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
         stored in redis
         """
 
-        if name != "redis_store_fields" and name in self.redis_store_fields:
+        if (
+            name != "redis_store_fields"
+            and name in self.redis_settable_fields
+            and name in self.redis_store_fields
+        ):
             self.__redis_setter(name, value)
 
         super().__setattr__(name, value)
@@ -139,7 +148,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
         if (
             name != "redis_store_fields"
             and name in self.redis_store_fields
-            and (value := self.__redis_getter(name))
+            and (value := self.__redis_getter(name)) is not None
         ):
             return value
 
@@ -147,26 +156,25 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
     def __redis_setter(self, name, value):
         """
-        Update key value stored in redis
+        Update hash value stored in redis
         """
 
         key = str(getattr(self, self.redis_store_key))
 
-        if (data := REDIS.hgetall(key)) and data.get(name):
-            data[name] = value
-            REDIS.hmset(key, data)
+        if REDIS.hexists(key, name):
+            REDIS.hset(key, name, value)
         else:
             return None
 
     def __redis_getter(self, name):
         """
-        Try to return value stored in redis
+        Try to return hash value stored in redis
         """
 
         key = str(getattr(self, self.redis_store_key))
 
-        if data := REDIS.hgetall(key):
-            return data.get(name)
+        if (value := REDIS.hget(key, name)) is not None:
+            return value
         else:
             return None
 

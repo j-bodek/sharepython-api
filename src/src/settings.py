@@ -35,17 +35,26 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://127.0.0.1:8000",
     "http://0.0.0.0:8000",
-    "http://localhost:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:8888",
+    "http://0.0.0.0:8888",
+    "http://localhost:8888",
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://0.0.0.0:8080",
     "http://localhost:8080",
+    "http://127.0.0.1:8888",
+    "http://0.0.0.0:8888",
+    "http://localhost:8888",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://0.0.0.0:8080",
     "http://localhost:8080",
+    "http://127.0.0.1:8888",
+    "http://0.0.0.0:8888",
+    "http://localhost:8888",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -175,7 +184,7 @@ SIMPLE_JWT = {
 
 # Define time after which redis will clear
 # unused codespace
-CODESPACE_REDIS_EXPIRE_TIME = 30
+CODESPACE_REDIS_EXPIRE_TIME = 1200
 # Define time after which redis will clear
 # unused temporary codespace
 TMP_CODESPACE_REDIS_EXPIRE_TIME = 30
