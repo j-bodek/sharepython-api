@@ -65,13 +65,13 @@ class CodeSpaceModelTests(TestCase):
         self.assertTrue(patched_signal.called)
         self.assertEqual(patched_signal.call_count, 1)
 
-    @patch("src.REDIS.hgetall", return_value={"name": "new_name", "code": "new_code"})
-    def test_codespace_getattribute(self, patched_redis_hgetall):
+    @patch("src.REDIS.hget")
+    def test_codespace_getattribute(self, patched_redis_hget):
         """Test if while getting field specified in redis_store_fields
         data from redis is returned"""
-
+        patched_redis_hget.return_value = "new_code"
         self.assertEqual(self.codespace.code, "new_code")
-        self.assertEqual(self.codespace.name, "new_name")
+        patched_redis_hget.assert_called_once_with(str(self.codespace.uuid), "code")
 
 
 class TmpCodeSpaceTests(SimpleTestCase):
@@ -118,7 +118,7 @@ class TmpCodeSpaceTests(SimpleTestCase):
         """Test if objects.get() return TmpCodeSpace instance"""
         patched_redis.exists.return_value = True
         patched_redis.hgetall.return_value = {
-            "uuid":"mocked_uuid",
+            "uuid": "mocked_uuid",
             "code": "mocked_code",
         }
         tmp_codespace = TmpCodeSpace.objects.get(uuid="mocked_uuid")
