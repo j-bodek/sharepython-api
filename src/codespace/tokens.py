@@ -7,7 +7,7 @@ import secrets
 from datetime import datetime, timedelta
 
 
-class CodeSpaceAccessToken(object):
+class CodeSpaceAccessToken:
     """
     Class that can be used to check/create codespace
     access token

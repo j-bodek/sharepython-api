@@ -184,7 +184,7 @@ SIMPLE_JWT = {
 
 # Define time after which redis will clear
 # unused codespace
-CODESPACE_REDIS_EXPIRE_TIME = 1200
+CODESPACE_REDIS_EXPIRE_TIME = 15
 # Define time after which redis will clear
 # unused temporary codespace
 TMP_CODESPACE_REDIS_EXPIRE_TIME = 30

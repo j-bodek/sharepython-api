@@ -1,15 +1,12 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-import uuid
 from datetime import datetime
 from django.utils.translation import gettext_lazy as _
-from src import REDIS
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from core.manager import CodeSpaceManager, TmpCodeSpaceManager
 from django.conf import settings
-from django.core.exceptions import (
-    ObjectDoesNotExist,
-)
+from src import REDIS
+import uuid
 
 
 def get_default_code_value() -> str:
@@ -51,7 +48,8 @@ class CodeSpaceBase(models.base.ModelBase):
         redis_store_key = attrs.get("redis_store_key")
         redis_store_fields = {}
         for field in attrs.get("redis_store_fields"):
-            if not attrs.get(field):
+            # check if class has attribute named field
+            if field not in attrs:
                 raise ImproperlyConfigured(
                     f"{cls} class don't have '{field}' attribute"
                 )
@@ -60,7 +58,7 @@ class CodeSpaceBase(models.base.ModelBase):
 
         # If redis_store_key inside redis_store_fields
         # __getattribute__ method will cause infinite recursion
-        if redis_store_fields.get(redis_store_key):
+        if redis_store_key in redis_store_fields:
             raise ImproperlyConfigured(
                 str(
                     f"redis_store_key named '{redis_store_key}' "
@@ -78,7 +76,8 @@ class CodeSpaceBase(models.base.ModelBase):
 
 class CodeSpace(models.Model, metaclass=CodeSpaceBase):
     """
-    Class used to store user code space informations
+    Class used to store user code space informations.
+    On
     """
 
     redis_store_key = "uuid"
@@ -86,6 +85,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
     redis_store_fields = ["name", "code"]
     # list of fields that after setattribute will be changed in redis
     # this will be used to prevent from updating code value by serializers
+    # value for code should be updated ONLY through websocket endpoint!
     redis_settable_fields = ["name"]
 
     objects = CodeSpaceManager()
@@ -123,6 +123,30 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
         _("date updated"),
         auto_now=True,
     )
+
+    @classmethod
+    def is_cached_in_redis(cls, uuid: str) -> bool:
+        """
+        Check if codespace data is cached in redis
+        """
+
+        return REDIS.exists(uuid)
+
+    @classmethod
+    def save_redis_changes(cls, codespace) -> None:
+        """
+        This method is used to update postgres codespace data
+        with data stored in redis
+        """
+
+        uuid = str(codespace.uuid)
+        if not cls.is_cached_in_redis(uuid):
+            raise ObjectDoesNotExist("Can not find CodeSpace data in redis")
+
+        data = REDIS.hmget(uuid, *cls.redis_store_fields)
+        data = {k: v for k, v in zip(cls.redis_store_fields, data)}
+        codespace.__dict__.update(**data)
+        codespace.save()
 
     def __setattr__(self, name, value):
         """
@@ -168,7 +192,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
     def __redis_getter(self, name):
         """
-        Try to return hash value stored in redis
+        Try to retrieve hash value stored in redis
         """
 
         key = str(getattr(self, self.redis_store_key))
@@ -197,7 +221,6 @@ class TmpCodeSpaceBase(type):
 
         # set manager model attribute
         manager.model = new_class
-        module = attrs.get("__module__", "")
 
         # set DoesNotExist exception
         setattr(
@@ -206,7 +229,7 @@ class TmpCodeSpaceBase(type):
             models.base.subclass_exception(
                 "DoesNotExist",
                 (ObjectDoesNotExist,),
-                module,
+                attrs.get("__module__", ""),
                 attached_to=new_class,
             ),
         )
@@ -217,7 +240,8 @@ class TmpCodeSpaceBase(type):
 class TmpCodeSpace(object, metaclass=TmpCodeSpaceBase):
     """
     This class represents temporary codespace which
-    is saved only in redis
+    is saved only in redis. Temporary codespace can be created
+    by anonymous user
     """
 
     objects = TmpCodeSpaceManager()
@@ -240,8 +264,8 @@ class TmpCodeSpace(object, metaclass=TmpCodeSpaceBase):
     def save(self) -> None:
         """
         Used only once when creating new tmp codespace.
-        If codespace edit nothing will happen
         """
+
         redis_key = str(getattr(self, self.redis_store_key))
         if not REDIS.exists(redis_key):
             REDIS.hmset(redis_key, self.to_python())

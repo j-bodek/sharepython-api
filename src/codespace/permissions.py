@@ -49,7 +49,9 @@ class IsCodeSpaceAccessTokenValid(permissions.BasePermission):
 
         view.kwargs.update(
             {
-                "codespace_uuid": codespace_uuid,
+                getattr(
+                    view, "codespace_uuid_kwarg_key", "codespace_uuid"
+                ): codespace_uuid,
             }
         )
         return True

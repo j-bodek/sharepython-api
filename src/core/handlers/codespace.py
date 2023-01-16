@@ -34,6 +34,7 @@ def save_codespace_data_to_redis(sender, instance) -> None:
 
         REDIS.hmset(redis_key, redis_data)
 
+    # if data for codespace already stored in redis, extend expiration value
     REDIS.expire(redis_key, settings.CODESPACE_REDIS_EXPIRE_TIME)
 
 
