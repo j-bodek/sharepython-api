@@ -1,14 +1,17 @@
 from django.test import TestCase, SimpleTestCase
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 from rest_framework.test import APIClient
+from rest_framework import exceptions
 from django.urls import reverse
 import uuid
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework_simplejwt.tokens import AccessToken
 from core.models import TmpCodeSpace, CodeSpace
 from codespace.tokens import codespace_access_token_generator
 import datetime
 from typing import Type
+from codespace.views import codespace as codespace_views
 
 
 class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
@@ -221,3 +224,86 @@ class TestRetrieveCodeSpaceAccessTokenView(TestCase):
 
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data.get("uuid"), str(codespace_uuid))
+
+
+class TestCodeSpaceSaveChangesView(TestCase):
+    """
+    Tests for CodeSpaceSaveChangesView class
+    """
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email="test@example.com", password="test_password"
+        )
+        self.token = AccessToken().for_user(self.user)
+        self.client = APIClient()
+        self.codespace = CodeSpace.objects.create(created_by=self.user)
+        self.ViewClass = codespace_views.CodeSpaceSaveChangesView
+
+    def test_get_object_method(self):
+        """
+        Test if return CodeSpace, or raise exception if codespace does not exists
+        """
+
+        view = self.ViewClass()
+        view.kwargs = {"uuid": str(self.codespace.uuid)}
+        obj = view.get_object()
+        self.assertEqual(str(obj.uuid), str(self.codespace.uuid))
+
+        with self.assertRaises(exceptions.NotFound):
+            view.kwargs = {"uuid": str(uuid.uuid4())}
+            obj = view.get_object()
+
+    def test_get_permissions_method(self):
+        """
+        Test if return list of permissions depending on url parameter (uuid or token)
+        """
+
+        view = self.ViewClass()
+
+        view.uuid_permission_classes = [MagicMock(return_value="uuid_permission")]
+        view.kwargs = {"uuid": "some_uuid"}
+        self.assertEqual(view.get_permissions(), ["uuid_permission"])
+
+        view.token_permission_classes = [MagicMock(return_value="token_permission")]
+        view.kwargs = {"token": "some_token"}
+        self.assertEqual(view.get_permissions(), ["token_permission"])
+
+    @patch("codespace.views.codespace.CodeSpace.save_redis_changes")
+    def test_save_changes_raise_notfound_when_code_not_in_redis(
+        self, patched_save_redis_changes
+    ):
+        """
+        If save_redis_changes raises ObjectDoesNotExist save_changes method
+        should raise NotFound exception
+        """
+
+        patched_save_redis_changes.side_effect = [
+            ObjectDoesNotExist("Can not find CodeSpace data in redis")
+        ]
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        r = self.client.patch(
+            reverse(
+                "codespace:save_changes_codespace",
+                kwargs={"uuid": str(self.codespace.uuid)},
+            ),
+        )
+
+        self.assertEqual(r.status_code, 404)
+
+    @patch("codespace.views.codespace.CodeSpace.save_redis_changes", return_value=None)
+    def test_with_valid_request(self, *patches):
+        """
+        Test if status code 200
+        """
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        r = self.client.patch(
+            reverse(
+                "codespace:save_changes_codespace",
+                kwargs={"uuid": str(self.codespace.uuid)},
+            ),
+        )
+
+        self.assertEqual(r.status_code, 200)

@@ -21,7 +21,7 @@ urlpatterns = [
     re_path(
         r"codespace/save_changes/(?P<token>(?:[a-zA-Z0-9_-]{4})*(?:[a-zA-Z0-9_-]{2}==|[a-zA-Z0-9_-]{3}=|[a-zA-Z0-9_-]{4}))/",  # noqa
         CodeSpaceSaveChangesView.as_view(),
-        name="retrieve_codespace_access_token",
+        name="save_changes_codespace",
     ),
     re_path(
         r"codespace/(?P<tmp_uuid>tmp-[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12})/",  # noqa

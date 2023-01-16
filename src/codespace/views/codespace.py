@@ -5,6 +5,7 @@ from codespace.pagination import PageNumberPagination
 from rest_framework.response import Response
 from core.models import CodeSpace, TmpCodeSpace
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from rest_framework import status
 from typing import Type, Union
@@ -136,7 +137,7 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
 
         try:
             CodeSpace.save_redis_changes(codespace=obj)
-        except Exception as e:
+        except ObjectDoesNotExist as e:
             raise exceptions.NotFound(detail=str(e))
 
         return Response(
