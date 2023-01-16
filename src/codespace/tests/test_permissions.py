@@ -68,5 +68,6 @@ class TestIsCodeSpaceAccessTokenValid(SimpleTestCase):
             self.create_timestamp(hours=1),
         )
         self.view.kwargs = {"token": "token"}
+        self.view.codespace_uuid_kwarg_key = "uuid"
         self.assertTrue(self.permission.has_permission(self.request, self.view))
-        self.assertEqual(self.view.kwargs.get("codespace_uuid"), "codespace_uuid")
+        self.assertEqual(self.view.kwargs.get("uuid"), "codespace_uuid")

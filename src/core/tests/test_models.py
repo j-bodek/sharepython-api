@@ -1,9 +1,10 @@
 from django.test import TestCase, SimpleTestCase
 from django.contrib.auth import get_user_model
 from core.models import CodeSpace, TmpCodeSpace
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import fakeredis
 import uuid
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class UserModelTests(TestCase):
@@ -72,6 +73,41 @@ class CodeSpaceModelTests(TestCase):
         patched_redis_hget.return_value = "new_code"
         self.assertEqual(self.codespace.code, "new_code")
         patched_redis_hget.assert_called_once_with(str(self.codespace.uuid), "code")
+
+    @patch("core.models.codespace.REDIS")
+    def test_is_cached_in_redis_method(self, patched_redis):
+        """
+        Test if is_cached_in_redis method return True if key in redis or false otherwise
+        """
+
+        patched_redis.exists.return_value = False
+        self.assertFalse(CodeSpace.is_cached_in_redis("codespace_uuid"))
+        patched_redis.exists.return_value = True
+        self.assertTrue(CodeSpace.is_cached_in_redis("codespace_uuid"))
+
+    @patch("core.models.codespace.CodeSpace.is_cached_in_redis", return_value=False)
+    def test_save_redis_chagnes_no_data_in_cache(self, *patches):
+        """
+        If codespace data not in cache ObjectDoesNotExist should be raised
+        """
+
+        with self.assertRaises(ObjectDoesNotExist):
+            CodeSpace.save_redis_changes(Mock(uuid="codespace_uuid"))
+
+    @patch("core.models.codespace.CodeSpace.is_cached_in_redis", return_value=True)
+    @patch("core.models.codespace.CodeSpace.save")
+    @patch("core.models.codespace.REDIS")
+    def test_save_redis_chagnes_data_in_cache(self, patched_redis, *patches):
+        """
+        If codespace data in cache postgres values should be updated
+        """
+        data = [f"redis_{f_name}" for f_name in CodeSpace.redis_store_fields]
+        patched_redis.hmget.return_value = data
+        # CodeSpace.save() is mocked because it will fire signals, and setters
+        CodeSpace.save_redis_changes(self.codespace)
+
+        for field in CodeSpace.redis_store_fields:
+            self.assertEqual(self.codespace.__dict__.get(field), f"redis_{field}")
 
 
 class TmpCodeSpaceTests(SimpleTestCase):
