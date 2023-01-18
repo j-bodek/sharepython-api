@@ -254,21 +254,6 @@ class TestCodeSpaceSaveChangesView(TestCase):
             view.kwargs = {"uuid": str(uuid.uuid4())}
             obj = view.get_object()
 
-    def test_get_permissions_method(self):
-        """
-        Test if return list of permissions depending on url parameter (uuid or token)
-        """
-
-        view = self.ViewClass()
-
-        view.uuid_permission_classes = [MagicMock(return_value="uuid_permission")]
-        view.kwargs = {"uuid": "some_uuid"}
-        self.assertEqual(view.get_permissions(), ["uuid_permission"])
-
-        view.token_permission_classes = [MagicMock(return_value="token_permission")]
-        view.kwargs = {"token": "some_token"}
-        self.assertEqual(view.get_permissions(), ["token_permission"])
-
     @patch("codespace.views.codespace.CodeSpace.save_redis_changes")
     def test_save_changes_raise_notfound_when_code_not_in_redis(
         self, patched_save_redis_changes

@@ -117,15 +117,11 @@ class RetrieveCodeSpaceAccessTokenView(generics.RetrieveAPIView):
 class CodeSpaceSaveChangesView(generics.GenericAPIView):
     """
     View used to save code changes stored in redis
-    to postgres database
+    to postgres database (changes can be saved only by owner
+    mainly to limit save requests to minimum)
     """
 
-    # used by IsCodeSpaceAccessTokenValid to update kwargs with codespace uuid
-    codespace_uuid_kwarg_key = "uuid"
-    # permission classes used if endpoint accessed with token
-    token_permission_classes = (IsCodeSpaceAccessTokenValid,)
-    # permission classes used if endpoint accessed with codespace uuid
-    uuid_permission_classes = (IsCodeSpaceOwner,)
+    permission_classes = (IsCodeSpaceOwner,)
 
     def save_changes(self, request, *args, **kwargs):
         """
@@ -134,7 +130,6 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
 
         obj = self.get_object()
         self.check_object_permissions(self.request, obj)
-
         try:
             CodeSpace.save_redis_changes(codespace=obj)
         except ObjectDoesNotExist as e:
@@ -155,16 +150,6 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
             return obj.first()
         else:
             raise exceptions.NotFound(detail="CodeSpace does not exists")
-
-    def get_permissions(self):
-        """
-        Based on url parameter returns corresponding permission classes
-        """
-
-        if "token" in self.kwargs:
-            return [permission() for permission in self.token_permission_classes]
-        elif "uuid" in self.kwargs:
-            return [permission() for permission in self.uuid_permission_classes]
 
     def patch(self, request, *args, **kwargs):
         return self.save_changes(request, *args, **kwargs)

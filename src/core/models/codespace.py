@@ -141,7 +141,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
         uuid = str(codespace.uuid)
         if not cls.is_cached_in_redis(uuid):
-            raise ObjectDoesNotExist("Can not find CodeSpace data in redis")
+            raise ObjectDoesNotExist("Can not find CodeSpace data in cache")
 
         data = REDIS.hmget(uuid, *cls.redis_store_fields)
         data = {k: v for k, v in zip(cls.redis_store_fields, data)}
