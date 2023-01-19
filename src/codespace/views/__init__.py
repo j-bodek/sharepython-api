@@ -8,5 +8,4 @@ from .codespace import (  # noqa
 )
 from .share import (  # noqa
     TokenCodeSpaceAccessCreateView,
-    TokenCodeSpaceAccessVerifyView,
 )

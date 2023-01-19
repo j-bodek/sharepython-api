@@ -29,38 +29,28 @@ class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
         """Test if new token is returned after successfull request"""
         r = self.client.post(
             reverse("codespace:token_codespace_access"),
-            data={"codespace_uuid": str(uuid.uuid4()), "expire_time": 120},
+            data={
+                "codespace_uuid": str(uuid.uuid4()),
+                "expire_time": 120,
+                "mode": "edit",
+            },
         )
 
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.data.get("token", False))
 
-
-class TestTokenCodeSpaceAccessVerifyView(SimpleTestCase):
-    """Test TokenCodeSpaceAccessVerifyView"""
-
-    def setUp(self):
-        self.client = APIClient()
-
+    @patch("codespace.views.share.IsCodeSpaceOwner.has_permission", return_value=True)
     @patch(
-        "codespace.views.share.IsCodeSpaceAccessTokenValid.has_permission",
+        "codespace.views.share.permissions.IsAuthenticated.has_permission",
         return_value=True,
     )
-    def test_valid_token_request(self, *args):
+    def test_request_without_expire_time(self, *args):
         r = self.client.post(
-            reverse("codespace:token_codespace_verify"), data={"token": "token"}
+            reverse("codespace:token_codespace_access"),
+            data={"codespace_uuid": str(uuid.uuid4()), "expire_time": 120},
         )
-        self.assertEqual(r.status_code, 200)
 
-    @patch(
-        "codespace.views.share.IsCodeSpaceAccessTokenValid.has_permission",
-        return_value=False,
-    )
-    def test_invalid_token_request(self, *args):
-        r = self.client.post(
-            reverse("codespace:token_codespace_verify"), data={"token": "token"}
-        )
-        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.status_code, 400)
 
 
 class TestCreateCodeSpaceView(TestCase):
@@ -198,7 +188,7 @@ class TestRetrieveCodeSpaceAccessTokenView(TestCase):
     def test_with_valid_token(self, patched_get_object_or_404):
         """Test retrievieng codespace data with valid token"""
         codespace_uuid = uuid.uuid4()
-        token = self.token_generator.make_token(codespace_uuid, 120)
+        token = self.token_generator.make_token(codespace_uuid, 120, "edit")
         mocked_user = Mock()
         mocked_user.first_name = "John"
         mocked_user.last_name = "Doe"

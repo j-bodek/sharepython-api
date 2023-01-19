@@ -66,8 +66,11 @@ class TestIsCodeSpaceAccessTokenValid(SimpleTestCase):
         patched_decrypt_token.return_value = (
             "codespace_uuid",
             self.create_timestamp(hours=1),
+            "edit",
         )
         self.view.kwargs = {"token": "token"}
         self.view.codespace_uuid_kwarg_key = "uuid"
+        self.view.mode_kwarg_key = "mode"
         self.assertTrue(self.permission.has_permission(self.request, self.view))
         self.assertEqual(self.view.kwargs.get("uuid"), "codespace_uuid")
+        self.assertEqual(self.view.kwargs.get("mode"), "edit")

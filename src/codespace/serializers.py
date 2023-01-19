@@ -67,7 +67,7 @@ class CodeSpaceTokenSerializer(CodeSpaceSerializer):
     Overwrite CodeSpaceSerializer by adding mode field
     """
 
-    mode = serializers.SerializerMethodField()
+    mode = serializers.SerializerMethodField(allow_null=False)
 
     class Meta(CodeSpaceSerializer.Meta):
         fields = (
