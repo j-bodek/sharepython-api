@@ -22,12 +22,15 @@ class CodeSpaceAccessToken:
         secret = hashlib.sha256(settings.SECRET_KEY.encode("utf8")).digest()
         return secret
 
-    def make_token(self, uuid: str, expire_time: int) -> str:
+    def make_token(self, uuid: str, expire_time: int, mode: str) -> str:
         """
         Create token using AES (Advanced Encryption Standard)
-        algorithm
+        algorithm. It takes following arguments:
+        - uuid - codespace uuid
+        - expire_time - time for which token will be valid
+        - mode - share mode (edit, view_only)
         """
-        token_hash = self.__make_token_hash(uuid, expire_time)
+        token_hash = self.__make_token_hash(uuid, expire_time, mode)
         nonce = secrets.token_bytes(12)
         token = nonce + AESGCM(self.__secret).encrypt(
             nonce=nonce,
@@ -45,8 +48,8 @@ class CodeSpaceAccessToken:
         decrypted_token = AESGCM(self.__secret).decrypt(token[:12], token[12:], b"")
         return decrypted_token.decode("utf8").split(":")
 
-    def __make_token_hash(self, uuid: str, expire_time: int) -> str:
-        return f"{uuid}:{str(self._expire_ts(expire_time))}"
+    def __make_token_hash(self, uuid: str, expire_time: int, mode: str) -> str:
+        return f"{uuid}:{str(self._expire_ts(expire_time))}:{mode}"
 
     def _expire_ts(self, expire_time: int) -> int:
         """

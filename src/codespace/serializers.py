@@ -61,6 +61,41 @@ class CodeSpaceSerializer(serializers.ModelSerializer):
             return declared_fields
 
 
+class CodeSpaceTokenSerializer(CodeSpaceSerializer):
+    """
+    Serializer used in retrieve CodeSpace data with token.
+    Overwrite CodeSpaceSerializer by adding mode field
+    """
+
+    mode = serializers.SerializerMethodField()
+
+    class Meta(CodeSpaceSerializer.Meta):
+        fields = (
+            "uuid",
+            "name",
+            "code",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "mode",
+        )
+        read_only_fields = (
+            "uuid",
+            "code",  # code should be updated only through websockets
+            "created_by",
+            "created_at",
+            "updated_at",
+            "mode",
+        )
+
+    def get_mode(self, obj):
+        """
+        Get access token mode
+        """
+
+        return self.context["view"].kwargs.get("mode")
+
+
 class TmpCodeSpaceSerializer(serializers.Serializer):
     """
     Temporary codespace is used to store only code without
@@ -90,20 +125,32 @@ class TmpCodeSpaceSerializer(serializers.Serializer):
 
 class TokenAccessCodeSpaceSerializer(serializers.Serializer):
     """
-    Serializer for access codespace token
+    Serializer for codespace access token
     """
 
     token_generator = codespace_access_token_generator
+    # fields
     codespace_uuid = serializers.UUIDField(required=True)
     expire_time = serializers.IntegerField(required=True)
+    mode = serializers.ChoiceField(required=True, choices=["edit", "view_only"])
 
     @classmethod
-    def get_token(cls, codespace_uuid: str, expire_time: int) -> str:
-        return cls.token_generator.make_token(codespace_uuid, expire_time)
+    def get_token(cls, codespace_uuid: str, expire_time: int, mode: str) -> str:
+        """
+        Return token created with CodeSpaceAccessToken class
+        """
+
+        return cls.token_generator.make_token(codespace_uuid, expire_time, mode)
 
     def validate(self, attrs: dict) -> dict:
+        """
+        Validate given data and if it is valid, add generated token
+        """
+
         data = super().validate(attrs)
-        token = self.get_token(data.get("codespace_uuid"), data.get("expire_time"))
+        token = self.get_token(
+            data.get("codespace_uuid"), data.get("expire_time"), data.get("mode")
+        )
         data = {"token": token}
 
         return data

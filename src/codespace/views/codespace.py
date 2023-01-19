@@ -1,5 +1,9 @@
 from rest_framework import generics, permissions, exceptions
-from codespace.serializers import CodeSpaceSerializer, TmpCodeSpaceSerializer
+from codespace.serializers import (
+    CodeSpaceSerializer,
+    CodeSpaceTokenSerializer,
+    TmpCodeSpaceSerializer,
+)
 from codespace.permissions import IsCodeSpaceOwner, IsCodeSpaceAccessTokenValid
 from codespace.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -97,7 +101,7 @@ class RetrieveCodeSpaceAccessTokenView(generics.RetrieveAPIView):
 
     # used by IsCodeSpaceAccessTokenValid to update kwargs with codespace uuid
     codespace_uuid_kwarg_key = "uuid"
-    serializer_class = CodeSpaceSerializer
+    serializer_class = CodeSpaceTokenSerializer
     permission_classes = (IsCodeSpaceAccessTokenValid,)
 
     def get_object(self) -> Union[Type[CodeSpace], None]:

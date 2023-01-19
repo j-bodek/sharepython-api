@@ -7,7 +7,7 @@ from typing import Type
 
 class TokenCodeSpaceAccessCreateView(generics.GenericAPIView):
     """
-    Takes codespace_uuid and expire_time (in seconds) and returns
+    Takes codespace_uuid, expire_time (in seconds), mode ["edit", "view_only"] and returns
     token that can be used to share codespace for specified time period
     """
 
@@ -18,23 +18,3 @@ class TokenCodeSpaceAccessCreateView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
-
-
-class TokenCodeSpaceAccessVerifyView(generics.GenericAPIView):
-    """
-    This View is used to verify if codespace access token is still valid
-    and returns 403 if token is invalid or 200 if it is valid
-    """
-
-    permission_classes = (IsCodeSpaceAccessTokenValid,)
-
-    def post(self, request, *args, **kwargs) -> Type[Response]:
-        return Response(data={}, status=status.HTTP_200_OK)
-
-    def permission_denied(self, request, message=None, code=None) -> None:
-        """
-        Override this method to not raise NotAuthenticated since
-        this view doesn't require authentication
-        """
-
-        raise exceptions.PermissionDenied(detail=message, code=code)
