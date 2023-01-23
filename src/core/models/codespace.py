@@ -250,7 +250,7 @@ class TmpCodeSpace(object, metaclass=TmpCodeSpaceBase):
 
     def __init__(self, uuid: str, code=None, *args, **kwargs) -> None:
         self.uuid = uuid
-        self.code = code or get_default_code_value()
+        self.code = code if code is not None else get_default_code_value()
 
     def to_python(self) -> dict:
         """

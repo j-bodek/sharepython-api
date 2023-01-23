@@ -124,6 +124,16 @@ class TmpCodeSpaceTests(SimpleTestCase):
         with self.assertRaises(TmpCodeSpace.DoesNotExist):
             TmpCodeSpace.objects.get(uuid="invalid_uuid")
 
+    def test_tmpcodespace_code_value_with_empty_string_and_none(self):
+        """Test if TmpCodeSpace retrun valid code value if code is empty
+        string (should return empty string) and if code is None
+        (should return default value)"""
+
+        tmp_codespace = TmpCodeSpace(uuid=self.uuid, code="")
+        self.assertEqual(tmp_codespace.code, "")
+        tmp_codespace = TmpCodeSpace(uuid=self.uuid, code=None)
+        self.assertNotEqual(tmp_codespace.code, None)
+
     @patch("core.models.codespace.REDIS")
     def test_tmpcodespace_save(self, patched_redis):
         """Test if on save TmpCodeSpace data is saved to redis"""
