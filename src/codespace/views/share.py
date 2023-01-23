@@ -1,14 +1,14 @@
-from rest_framework import permissions, generics, status, exceptions
+from rest_framework import permissions, generics, status
 from rest_framework.response import Response
-from codespace.permissions import IsCodeSpaceOwner, IsCodeSpaceAccessTokenValid
+from codespace.permissions import IsCodeSpaceOwner
 from codespace.serializers import TokenAccessCodeSpaceSerializer
 from typing import Type
 
 
 class TokenCodeSpaceAccessCreateView(generics.GenericAPIView):
     """
-    Takes codespace_uuid, expire_time (in seconds), mode ["edit", "view_only"] and returns
-    token that can be used to share codespace for specified time period
+    Takes codespace_uuid, expire_time (in seconds), mode ["edit", "view_only"]
+    and returns token that can be used to share codespace for specified time period
     """
 
     permission_classes = (permissions.IsAuthenticated, IsCodeSpaceOwner)

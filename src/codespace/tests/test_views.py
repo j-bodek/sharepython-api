@@ -1,5 +1,5 @@
 from django.test import TestCase, SimpleTestCase
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 from rest_framework.test import APIClient
 from rest_framework import exceptions
 from django.urls import reverse
@@ -105,7 +105,8 @@ class TestRetrieveUpdateDestroyCodeSpaceView(TestCase):
         self.assertEqual(r.data.get("code"), str(codespace.code))
 
     def test_retrieve_codespace_without_permission(self):
-        """Test retrieving data of codespace without either IsAuthenticated or IsOwner permission"""
+        """Test retrieving data of codespace without either IsAuthenticated
+        or IsOwner permission"""
 
         r = self.client.get(
             reverse(
