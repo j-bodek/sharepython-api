@@ -58,7 +58,8 @@ jobs:
             . venv/bin/activate
             cd src
             python3 manage.py wait_for_db
-            python3 manage.py test
+            python3 -m pytest
+            python3 -m flake8
       - store_artifacts:
           path: test-reports/
           destination: python_app

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from typing import Type
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -24,19 +23,23 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def validate_password(self, value: str) -> str:
+        """Minimum requirements for passwords are 6 or more characters,
+        at least one digit"""
+
         if not any(char.isdigit() for char in value):
             raise serializers.ValidationError(
                 "Password must contain at least one digit."
             )
         return value
 
-    def create(self, valid_data: dict) -> Type[get_user_model()]:
+    def create(self, valid_data: dict) -> get_user_model():
         """Create and return new user instance"""
+
         return get_user_model().objects.create_user(**valid_data)
 
     def update(
-        self, instance: Type[get_user_model()], validated_data: dict
-    ) -> Type[get_user_model()]:
+        self, instance: get_user_model(), validated_data: dict
+    ) -> get_user_model():
         """
         Overrider update method to set updated password properly
         """
@@ -50,5 +53,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def __update_password(self, user: Type[get_user_model()], password: str) -> None:
+    def __update_password(self, user: get_user_model(), password: str) -> None:
+        """This method is used to set password with user set_password method"""
+
         user.set_password(password)
