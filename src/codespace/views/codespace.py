@@ -10,28 +10,29 @@ from rest_framework.response import Response
 from core.models import CodeSpace, TmpCodeSpace
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404
+from django.http import Http404, HttpRequest
 from rest_framework import status
-from typing import Type, Union
+from typing import Union
 from django.db.models.query import QuerySet
 
 
 class CreateCodeSpaceView(generics.CreateAPIView):
-    """View responsible for creating new codespace."""
+    """View responsible for creating new regular
+    or temporary codespace"""
 
     codespace_serializer_class = CodeSpaceSerializer
     tmp_codespace_serializer_class = TmpCodeSpaceSerializer
 
     def get_serializer_class(
         self,
-    ) -> Union[Type[CodeSpaceSerializer], Type[TmpCodeSpaceSerializer]]:
+    ) -> Union[type[CodeSpaceSerializer], type[TmpCodeSpaceSerializer]]:
         # if user is not authenticated create temporary codespace
         if self.request.user.is_authenticated:
             return self.codespace_serializer_class
         else:
             return self.tmp_codespace_serializer_class
 
-    def create(self, request, *args, **kwargs) -> Type[Response]:
+    def create(self, request: HttpRequest, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -41,7 +42,7 @@ class CreateCodeSpaceView(generics.CreateAPIView):
         )
 
     def perform_create(
-        self, serializer: Union[Type[CodeSpaceSerializer], Type[TmpCodeSpaceSerializer]]
+        self, serializer: Union[CodeSpaceSerializer, TmpCodeSpaceSerializer]
     ) -> None:
         serializer.save(created_by=self.request.user)
 
@@ -54,7 +55,7 @@ class CodeSpaceListView(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = PageNumberPagination
 
-    def get_queryset(self) -> Type[QuerySet]:
+    def get_queryset(self) -> QuerySet:
         """Return a queryset of CodeSpace created by authenticated user"""
         return self.queryset.filter(
             created_by=self.request.user,
@@ -67,7 +68,9 @@ class RetrieveUpdateDestroyCodeSpaceView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CodeSpaceSerializer
     permission_classes = (permissions.IsAuthenticated, IsCodeSpaceOwner)
 
-    def get_object(self) -> Union[Type[CodeSpace], None]:
+    def get_object(self) -> Union[CodeSpace, None]:
+        """Return CodeSpace object base on uuid parameter"""
+
         obj_uuid = self.kwargs.get("uuid", "")
         obj = get_object_or_404(CodeSpace, uuid=obj_uuid)
 
@@ -82,7 +85,9 @@ class RetrieveDestroyTmpCodeSpaceView(generics.RetrieveDestroyAPIView):
     serializer_class = TmpCodeSpaceSerializer
     permission_classes = (permissions.AllowAny,)
 
-    def get_object(self) -> Union[Type[CodeSpace], None]:
+    def get_object(self) -> Union[CodeSpace, None]:
+        """Return TmpCodeSpace based on tmp_uuid parameter"""
+
         obj_uuid = self.kwargs.get("tmp_uuid", "")
 
         try:
@@ -104,12 +109,14 @@ class RetrieveCodeSpaceAccessTokenView(generics.RetrieveAPIView):
     serializer_class = CodeSpaceTokenSerializer
     permission_classes = (IsCodeSpaceAccessTokenValid,)
 
-    def get_object(self) -> Union[Type[CodeSpace], None]:
+    def get_object(self) -> Union[CodeSpace, None]:
         # uuid is in kwargs thanks to IsCodeSpaceAccessTokenValid
         uuid = self.kwargs.get("uuid")
         return get_object_or_404(CodeSpace, uuid=uuid)
 
-    def permission_denied(self, request, message=None, code=None):
+    def permission_denied(
+        self, request: HttpRequest, message: str = None, code=None
+    ) -> None:
         """
         Override this method to not raise NotAuthenticated since
         this view doesn't require authentication
@@ -127,7 +134,7 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
 
     permission_classes = (IsCodeSpaceOwner,)
 
-    def save_changes(self, request, *args, **kwargs):
+    def save_changes(self, request: HttpRequest, *args, **kwargs) -> Response:
         """
         Method used to saved redis changes to postgres
         """
@@ -144,10 +151,11 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
             status=status.HTTP_200_OK,
         )
 
-    def get_object(self) -> Type[CodeSpace]:
+    def get_object(self) -> CodeSpace:
         """
         Return CodeSpace object
         """
+
         obj = CodeSpace.objects.filter(uuid=self.kwargs.get("uuid"))
         if obj.exists():
             # use filter to don't fire post_get signal
@@ -155,5 +163,5 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
         else:
             raise exceptions.NotFound(detail="CodeSpace does not exists")
 
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request: HttpRequest, *args, **kwargs) -> Response:
         return self.save_changes(request, *args, **kwargs)

@@ -11,7 +11,8 @@ class PageNumberPagination(pagination.PageNumberPagination):
 
     page_size_query_param = "page_size"
 
-    def get_paginated_response(self, data) -> Type[Response]:
+    def get_paginated_response(self, data: dict) -> Response:
+
         return Response(
             {
                 "next": self.page.next_page_number() if self.page.has_next() else None,

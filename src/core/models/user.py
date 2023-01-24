@@ -22,7 +22,7 @@ class UserManager(BaseUserManager):
         email: str,
         password: Union[str, None] = None,
         **extra_fields,
-    ):
+    ) -> AbstractBaseUser:
         """
         Create and save user with given email and password
         """
@@ -41,7 +41,9 @@ class UserManager(BaseUserManager):
         email: str,
         password: Union[str, None] = None,
         **extra_fields,
-    ):
+    ) -> AbstractBaseUser:
+        """Create and return new user instance"""
+
         extra_fields.update({"is_staff": False, "is_superuser": False})
         return self._create_user(email, password, **extra_fields)
 
@@ -50,7 +52,9 @@ class UserManager(BaseUserManager):
         email: str,
         password: Union[str, None] = None,
         **extra_fields,
-    ):
+    ) -> AbstractBaseUser:
+        """Create and return new superuser instance"""
+
         extra_fields.update({"is_staff": True, "is_superuser": True})
         return self._create_user(email, password, **extra_fields)
 
@@ -100,11 +104,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     @property
-    def last_login_humanize(self):
+    def last_login_humanize(self) -> str:
         """returns humanized last login date"""
         return humanize.naturaltime(self.last_login)
 
     @property
-    def date_joined_humanize(self):
+    def date_joined_humanize(self) -> str:
         """returns humanized join date"""
         return humanize.naturaltime(self.date_joined)

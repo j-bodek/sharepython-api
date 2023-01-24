@@ -1,6 +1,8 @@
 from rest_framework import permissions
 from datetime import datetime
 from codespace.tokens import codespace_access_token_generator
+from django.http import HttpRequest
+from django.views import View
 
 
 class IsObjectOwner(permissions.BasePermission):
@@ -12,7 +14,9 @@ class IsObjectOwner(permissions.BasePermission):
 
     object_owner_field = "owner"
 
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(
+        self, request: HttpRequest, view: View, obj: object
+    ) -> bool:
         return getattr(obj, self.object_owner_field) == request.user
 
 
@@ -34,7 +38,7 @@ class IsCodeSpaceAccessTokenValid(permissions.BasePermission):
 
     message = "Codespace access token is not valid or expired"
 
-    def has_permission(self, request, view) -> bool:
+    def has_permission(self, request: HttpRequest, view: View) -> bool:
         token = view.kwargs.get("token", "") or request.data.get("token", "")
 
         try:
@@ -49,6 +53,7 @@ class IsCodeSpaceAccessTokenValid(permissions.BasePermission):
         if datetime.now() > datetime.fromtimestamp(int(expire_ts)):
             return False
 
+        # update view kwargs with decrypted token data
         view.kwargs.update(
             {
                 # add codespace uuid to kwargs

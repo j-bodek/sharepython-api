@@ -16,7 +16,7 @@ class TmpCodeSpaceManager(object):
     def __init__(self, model=None):
         self.model = model
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> object:
         """return TmpCodeSpace instance or raise DoesNotExist exception"""
 
         # redis store data as key:value so if uuid is not defined

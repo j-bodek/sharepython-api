@@ -2,7 +2,7 @@ from rest_framework import serializers
 from core.models import CodeSpace, TmpCodeSpace
 from codespace.tokens import codespace_access_token_generator
 from collections import OrderedDict
-from typing import Type, Union
+from typing import Union
 import uuid
 
 
@@ -29,7 +29,7 @@ class CodeSpaceSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
-    def get_created_by(self, obj: Type[CodeSpace]) -> Union[str, None]:
+    def get_created_by(self, obj: CodeSpace) -> Union[str, None]:
         """Return first and last name of codespace creator instead of uuid"""
 
         if (creator := obj.created_by) and creator.first_name and creator.last_name:
@@ -37,7 +37,7 @@ class CodeSpaceSerializer(serializers.ModelSerializer):
         else:
             return None
 
-    def get_fields(self) -> Type[OrderedDict]:
+    def get_fields(self) -> OrderedDict:
         """
         Returns a dictionary of {field_name: field_instance}.
         Allows user to specify "fields" query parameter to return
@@ -46,6 +46,7 @@ class CodeSpaceSerializer(serializers.ModelSerializer):
 
         declared_fields = super().get_fields()
 
+        # if request have fields query parameter filter fields based on it
         if fields := self.context["request"].query_params.get("fields"):
             field_names = fields.split(",")
             # Determine the fields that should be included on the serializer.
@@ -88,7 +89,7 @@ class CodeSpaceTokenSerializer(CodeSpaceSerializer):
             "mode",
         )
 
-    def get_mode(self, obj):
+    def get_mode(self, obj: TmpCodeSpace) -> str:
         """
         Get access token mode
         """
@@ -103,12 +104,11 @@ class TmpCodeSpaceSerializer(serializers.Serializer):
     from redis after time without updates defined in settings
     """
 
-    uuid = serializers.UUIDField(default=lambda: f"tmp-{uuid.uuid4()}")
+    uuid = serializers.UUIDField(default=lambda: uuid.uuid4())
     code = serializers.CharField(required=False)
 
     def create(self, validated_data: list) -> dict:
-        # used to create new temporary
-        # codespace
+        # used to create new temporary codespace
         tmp_codespace = TmpCodeSpace(**validated_data)
         tmp_codespace.save()
         return tmp_codespace

@@ -3,14 +3,13 @@ from core.signals import post_get
 from django.dispatch import receiver
 from core.models import CodeSpace
 from src import REDIS
-from typing import Type
 from django.conf import settings
 
 
 @receiver(post_delete, sender=CodeSpace)
 def codespace_post_delete_handler(
-    sender: CodeSpace, instance: Type[CodeSpace], **kwargs
-):
+    sender: type[CodeSpace], instance: CodeSpace, **kwargs
+) -> None:
     """
     This signals is used to handle
     codespace deletion
@@ -21,7 +20,7 @@ def codespace_post_delete_handler(
     REDIS.delete(instance_uuid)
 
 
-def save_codespace_data_to_redis(sender, instance) -> None:
+def save_codespace_data_to_redis(sender: type[CodeSpace], instance: CodeSpace) -> None:
     redis_key = str(getattr(instance, sender.redis_store_key))
 
     # if data for redis_key already exists
@@ -39,7 +38,9 @@ def save_codespace_data_to_redis(sender, instance) -> None:
 
 
 @receiver(post_get, sender=CodeSpace)
-def codespace_post_get_handler(sender: CodeSpace, instance: Type[CodeSpace], **kwargs):
+def codespace_post_get_handler(
+    sender: type[CodeSpace], instance: CodeSpace, **kwargs
+) -> None:
     """
     This signals is used to set CodeSpace
     data in redis after geting specific CodeSpace
@@ -51,8 +52,8 @@ def codespace_post_get_handler(sender: CodeSpace, instance: Type[CodeSpace], **k
 
 @receiver(post_save, sender=CodeSpace)
 def codespace_post_save_handler(
-    sender: CodeSpace, instance: Type[CodeSpace], created: bool, **kwargs
-):
+    sender: type[CodeSpace], instance: CodeSpace, created: bool, **kwargs
+) -> None:
     """
     This signals is used to set CodeSpace
     data in redis after creating new CodeSpace

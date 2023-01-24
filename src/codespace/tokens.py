@@ -1,5 +1,5 @@
 from django.conf import settings
-from typing import Type, Tuple, Union
+from typing import Tuple, Union
 import hashlib
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
@@ -19,6 +19,7 @@ class CodeSpaceAccessToken:
         Return django secret key hashed using sha256
         as 32 bytes
         """
+
         secret = hashlib.sha256(settings.SECRET_KEY.encode("utf8")).digest()
         return secret
 
@@ -30,6 +31,7 @@ class CodeSpaceAccessToken:
         - expire_time - time for which token will be valid
         - mode - share mode (edit, view_only)
         """
+
         token_hash = self.__make_token_hash(uuid, expire_time, mode)
         nonce = secrets.token_bytes(12)
         token = nonce + AESGCM(self.__secret).encrypt(
@@ -44,6 +46,7 @@ class CodeSpaceAccessToken:
         """
         Return encrypted values (uuid, timestampe)
         """
+
         token = base64.urlsafe_b64decode(token.encode())
         decrypted_token = AESGCM(self.__secret).decrypt(token[:12], token[12:], b"")
         return decrypted_token.decode("utf8").split(":")
@@ -60,7 +63,7 @@ class CodeSpaceAccessToken:
         timestamp = int(datetime.timestamp(expire_date))
         return timestamp
 
-    def _now(self) -> Type[datetime]:
+    def _now(self) -> datetime:
         """This method will be used for mocking in tests"""
         return datetime.now()
 

@@ -5,7 +5,6 @@ from jwt_auth.permissions import IsNotAuthenticated
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from rest_framework_simplejwt.tokens import RefreshToken
-from typing import Type
 
 
 class TokenVerifyView(generics.GenericAPIView):
@@ -17,7 +16,7 @@ class TokenVerifyView(generics.GenericAPIView):
 
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get(self, request: Type[HttpRequest], *args, **kwargs) -> Type[Response]:
+    def get(self, request: HttpRequest, *args, **kwargs) -> Response:
         return Response(data={}, status=status.HTTP_200_OK)
 
 
@@ -31,7 +30,7 @@ class RegisterView(generics.CreateAPIView):
     token_class = RefreshToken
     permission_classes = (IsNotAuthenticated,)
 
-    def create(self, request: Type[HttpRequest], *args, **kwargs) -> Type[Response]:
+    def create(self, request: HttpRequest, *args, **kwargs) -> Response:
         """
         Validate data, create user instance, and return
         access, refresh token and user data
@@ -51,12 +50,10 @@ class RegisterView(generics.CreateAPIView):
 
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
-    def perform_create(
-        self, serializer: Type[UserSerializer]
-    ) -> Type[get_user_model()]:
+    def perform_create(self, serializer: UserSerializer) -> get_user_model():
         return serializer.save()
 
-    def perform_authentication(self, request):
+    def perform_authentication(self, request: HttpRequest) -> None:
         """
         Perform authentication lazily, the first time either
         `request.user` or `request.auth` is accessed.
@@ -64,6 +61,6 @@ class RegisterView(generics.CreateAPIView):
         pass
 
     @classmethod
-    def get_token(cls, user: Type[get_user_model()]) -> Type[RefreshToken]:
+    def get_token(cls, user: get_user_model()) -> RefreshToken:
         """Create and return refresh, access token"""
         return cls.token_class.for_user(user)

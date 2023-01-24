@@ -6,6 +6,7 @@ from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from core.manager import CodeSpaceManager, TmpCodeSpaceManager
 from django.conf import settings
 from src import REDIS
+from typing import Union
 import uuid
 
 
@@ -29,7 +30,7 @@ def get_default_code_value() -> str:
     )
 
 
-def get_default_name():
+def get_default_name() -> str:
     """
     Return default codespace name,
     Before Django 1.7 could use lambda
@@ -39,7 +40,7 @@ def get_default_name():
 
 
 class CodeSpaceBase(models.base.ModelBase):
-    def __new__(cls, name, bases, attrs, **kwargs):
+    def __new__(cls, name: str, bases: list, attrs: dict, **kwargs):
         """
         Before class initialization validate redis_store_key
         and redis_store_fields
@@ -148,7 +149,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
         codespace.__dict__.update(**data)
         codespace.save()
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: str) -> None:
         """
         Override setattr method to also update data
         stored in redis
@@ -163,7 +164,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
         super().__setattr__(name, value)
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str):
         """
         Override gettattribute method to return value
         from redis for specified fields
@@ -178,7 +179,7 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
         return super().__getattribute__(name)
 
-    def __redis_setter(self, name, value):
+    def __redis_setter(self, name: str, value: str) -> None:
         """
         Update hash value stored in redis
         """
@@ -187,10 +188,8 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
         if REDIS.hexists(key, name):
             REDIS.hset(key, name, value)
-        else:
-            return None
 
-    def __redis_getter(self, name):
+    def __redis_getter(self, name: str) -> Union[str, None]:
         """
         Try to retrieve hash value stored in redis
         """
@@ -199,8 +198,6 @@ class CodeSpace(models.Model, metaclass=CodeSpaceBase):
 
         if (value := REDIS.hget(key, name)) is not None:
             return value
-        else:
-            return None
 
 
 class TmpCodeSpaceBase(type):
@@ -208,7 +205,7 @@ class TmpCodeSpaceBase(type):
     TmpCodeSpace metaclass
     """
 
-    def __new__(cls, name, bases, attrs, **kwargs):
+    def __new__(cls, name: str, bases: list, attrs: dict, **kwargs):
         """
         In __new__ method set model attribute in class manager,
         set DoesNotExist exception
@@ -237,7 +234,7 @@ class TmpCodeSpaceBase(type):
         return new_class
 
 
-class TmpCodeSpace(object, metaclass=TmpCodeSpaceBase):
+class TmpCodeSpace(metaclass=TmpCodeSpaceBase):
     """
     This class represents temporary codespace which
     is saved only in redis. Temporary codespace can be created
