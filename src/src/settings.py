@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "users",
     "jwt_auth",
     "codespace",
+    "emails",
     "rest_framework",
     "rest_framework_simplejwt",
     "django.contrib.admin",
