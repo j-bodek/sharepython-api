@@ -182,6 +182,12 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "uuid",
 }
 
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
 # Define time after which redis will clear
 # unused codespace
 CODESPACE_REDIS_EXPIRE_TIME = 1200
