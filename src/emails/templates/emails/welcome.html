@@ -1,0 +1,119 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Email</title>
+    <style>
+        .container {
+            width: 50%;
+            max-width: 500px;
+            min-width: 200px;
+            background-color: #fdf9f4;
+            margin: auto;
+            text-align: center;
+        }
+
+        .container img {
+            width: 80%;
+        }
+
+        .header {
+            background-color: #2c292d;
+            color: #fdf9f3;
+            padding: 1rem 0;
+        }
+
+        .header a {
+            color: #fdf9f3;
+        }
+
+        .body {
+            padding: 1rem;
+        }
+
+        .btns-container button {
+            background-color: #2c292d;
+            color: #fdf9f3;
+            font-weight: bold;
+            padding: .5rem 1rem;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .btns-container button a {
+            color: #fdf9f3;
+        }
+
+        .functionalities-list {
+            text-align: start;
+            padding: 0 2rem;
+        }
+
+        .functionalities-list ul {
+            list-style-type: none;
+        }
+
+        .functionalities-list li::before {
+            content: "\2713";
+            color: #a9dc76;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            padding-top: .25rem;
+            margin-left: -1em;
+            margin-right: 3px;
+        }
+    </style>
+    {% load static %}
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hello {{first_name}}!</h1>
+            <h2>Thanks for joining <a href="https://sharepython.io/">SharePython</a>!</h2>
+        </div>
+
+        <div class="body">
+            <p>
+                <b>NOTE:</b> This project was heavely inspired by <a href="https://codeshare.io/">CodeShare</a>.
+                So definitely check them out.
+            </p>
+            <hr>
+
+            <div class="btns-container">
+                <h3>
+                    <b>
+                        This platform is free and open source. It was created to help
+                        students learn the amazing programming language that is python.
+                    </b>
+                </h3>
+
+                <button>
+                    <a href="https://sharepython.io/">Start Coding</a>
+                </button>
+
+                <button>
+                    <a href="https://github.com/LilJack118/sharepython/">See Code on GitHub</a>
+                </button>
+            </div>
+
+            <hr>
+
+            <div class="functionalities-list">
+                <b>With help of SharePython You can:</b>
+                <ul>
+                    <li>Write and Save your code in cloud</li>
+                    <li>Execute your code in browser</li>
+                    <li>Share your code with others (in 'edit' and 'view only' modes)</li>
+                </ul>
+            </div>
+
+            <img src="{% static 'emails/images/sharepython-example.png' %}" alt="sharepython-example">
+        </div>
+    </div>
+</body>
+
+</html>

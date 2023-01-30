@@ -1,0 +1,13 @@
+Hello {{first_name}}!
+
+Thanks for joining PythonShare
+
+This project was heavely inspired by CodeShare. So definitely check them out.
+
+This platform is free and open source. It was created to help students 
+learn the amazing programming language that is python.
+
+With help of SharePython You can:
+- Write and Save your code in cloud
+- Execute your code in browser
+- Share your code with others (in 'edit' and 'view only' modes)
