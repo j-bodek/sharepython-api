@@ -1,8 +1,13 @@
 import os
 from celery import Celery
+from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.settings")
-app = Celery("src")
+app = Celery(
+    "src", broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND
+)
+print(settings.CELERY_BROKER_URL)
+print(settings.CELERY_RESULT_BACKEND)
 # define config file (in our case django settings)
 app.config_from_object("django.conf:settings", namespace="CELERY")
 # load all tasks
