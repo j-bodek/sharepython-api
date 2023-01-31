@@ -1,5 +1,10 @@
 import redis
 import os
+import environ
+
+# # Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 REDIS = redis.Redis(
     host=os.environ.get("REDIS_HOST"),
