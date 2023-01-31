@@ -25,7 +25,7 @@ class EmailSender(celery.Task):
 
         message = EmailMultiAlternatives(
             email_subject,
-            email_from=settings.DEFAULT_FROM_EMAIL,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[email_to],
         )
 
@@ -61,7 +61,7 @@ class EmailSender(celery.Task):
             if content_type == "text/plain":
                 message.body = content
             else:
-                message.attach_alternatives(content, content_type)
+                message.attach_alternative(content, content_type)
 
     def __get_contents(
         self, email_plaintext: str, email_template: str
