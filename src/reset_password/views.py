@@ -1,6 +1,7 @@
-from rest_framework import generics, permissions
-from users.serializers import UserSerializer
-from django.contrib.auth import get_user_model
+from rest_framework import generics, status
+from rest_framework.response import Response
+from reset_password import serializers
+from reset_password import signals
 
 
 class RequestResetPasswordView(generics.GenericAPIView):
@@ -9,6 +10,28 @@ class RequestResetPasswordView(generics.GenericAPIView):
     It takes following post parameters:
     - email - email of user that request reset password
     """
+
+    request_password_reset_signal = signals.request_password_reset
+    serializer_class = serializers.RequestResetPasswordSerializer
+
+    def send_reset_password_requested_signal(
+        self, serializer: serializers.RequestResetPasswordSerializer
+    ) -> None:
+        """Send request_password_reset_signal signal"""
+
+        token = serializer.generate_token()
+        self.request_password_reset_signal.send(sender=self.__class__, token=token)
+
+    def request_password_reset(self, request, *args, **kwargs) -> Response:
+        """This method is used as post request handler"""
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.send_reset_password_requested_signal(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs) -> Response:
+        return self.request_password_reset(request, *args, **kwargs)
 
 
 class ConfirmResetPasswordView(generics.GenericAPIView):
