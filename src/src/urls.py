@@ -25,7 +25,8 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
-    path("api/auth/", include("jwt_auth.urls")),
-    path("api/", include("users.urls")),
-    path("api/", include("codespace.urls")),
+    path("api/auth/", include("jwt_auth.urls")),  # auth endpoints
+    path("api/", include("users.urls")),  # users endpoints
+    path("api/", include("codespace.urls")),  # codespace endpoints
+    path("api/", include("reset_password.urls")),  # reset password endpoints
 ]
