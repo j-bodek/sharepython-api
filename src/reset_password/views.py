@@ -19,8 +19,9 @@ class RequestResetPasswordView(generics.GenericAPIView):
     ) -> None:
         """Send request_password_reset_signal signal"""
 
-        token = serializer.generate_token()
-        self.request_password_reset_signal.send(sender=self.__class__, token=token)
+        self.request_password_reset_signal.send(
+            sender=self.__class__, serializer=serializer
+        )
 
     def request_password_reset(self, request, *args, **kwargs) -> Response:
         """This method is used as post request handler"""
