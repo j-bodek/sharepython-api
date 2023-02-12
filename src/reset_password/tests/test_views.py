@@ -13,13 +13,15 @@ class TestRequestResetPasswordView(SimpleTestCase):
         self.view_class = reset_pwd_views.RequestResetPasswordView
 
     @mock.patch(
-        "reset_password.views.RequestResetPasswordView.send_reset_password_requested_signal"
+        "reset_password.views.RequestResetPasswordView.send_reset_password_requested_signal"  # noqa
     )
     @mock.patch("reset_password.views.RequestResetPasswordView.get_serializer")
     def test_request_password_reset(
         self, mocked_get_serializer, mocked_send_reset_password_requested_signal
     ):
-        """Test if serializer is_valid and send_reset_password_request_signal are called"""
+        """
+        Test if serializer is_valid and send_reset_password_request_signal are called
+        """
 
         data = {"email": "someemail@gmail.com"}
 

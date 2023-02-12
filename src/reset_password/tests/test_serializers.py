@@ -11,7 +11,7 @@ class TestRequestPasswordSerializer(SimpleTestCase):
         self.serializer_class = reset_pwd_serializers.RequestResetPasswordSerializer
 
     @mock.patch(
-        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__check_user_exists",
+        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__check_user_exists",  # noqa
         return_value=False,
     )
     def test_is_valid_with_invalid_email(self, *mocks):
@@ -23,7 +23,7 @@ class TestRequestPasswordSerializer(SimpleTestCase):
             serializer.is_valid(raise_exception=True)
 
     @mock.patch(
-        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__check_user_exists",
+        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__check_user_exists",  # noqa
         return_value=True,
     )
     def test_is_valid_with_valid_email(self, *mocks):
@@ -42,10 +42,10 @@ class TestRequestPasswordSerializer(SimpleTestCase):
             serializer.generate_token()
 
     @mock.patch(
-        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__get_user",
+        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__get_user",  # noqa
     )
     @mock.patch(
-        "reset_password.serializers.RequestResetPasswordSerializer.password_token_generator_class.make_token",
+        "reset_password.serializers.RequestResetPasswordSerializer.password_token_generator_class.make_token",  # noqa
     )
     def test_generate_token_with_previously_called_is_valid(
         self, mocked_make_token, *mocks
