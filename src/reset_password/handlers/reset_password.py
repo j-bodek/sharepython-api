@@ -18,9 +18,9 @@ def request_password_reset_handler(
 
     # send reset password email
     email_sender.delay(
-        email_subject=f"Reset Your Password",
+        email_subject="Reset Your Password",
         email_to=serializer.validated_data["email"],
         email_plaintext="emails/reset_password.txt",
         email_template="emails/reset_password.html",
-        reset_password_url=settings.RESET_PASSWORD_PAGE_BASE_URL(token=token),
+        reset_password_url=settings.RESET_PASSWORD_URL(token=token),
     )

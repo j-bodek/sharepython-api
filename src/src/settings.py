@@ -213,6 +213,4 @@ CODESPACE_REDIS_EXPIRE_TIME = 1200
 TMP_CODESPACE_REDIS_EXPIRE_TIME = 1200
 
 # set reset password page base url
-RESET_PASSWORD_PAGE_BASE_URL = (
-    lambda token: f"http://localhost:8080/reset_password/{token}/"
-)
+RESET_PASSWORD_URL = lambda token: f"http://localhost:8080/reset_password/{token}/"

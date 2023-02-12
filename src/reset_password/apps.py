@@ -6,4 +6,4 @@ class ResetPasswordConfig(AppConfig):
     name = "reset_password"
 
     def ready(self) -> None:
-        import reset_password.handlers
+        import reset_password.handlers  # noqa
