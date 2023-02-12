@@ -42,7 +42,7 @@ class RequestResetPasswordSerializer(serializers.Serializer):
 
         if not self.get_password_token_generator().check_token(user, value):
             raise serializers.ValidationError(
-                f"Provided token isn't valid for user with email '{self.initial_data['email']}'"
+                f"Provided token isn't valid for user with email '{self.initial_data['email']}'"  # noqa
             )
 
         return value
