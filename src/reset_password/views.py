@@ -51,3 +51,15 @@ class ValidateResetPasswordView(generics.GenericAPIView):
     It takes following post parameters:
     - token - reset password token
     """
+
+    serializer_class = serializers.RequestResetPasswordSerializer
+
+    def validate_reset_password_token(self, request, *args, **kwargs) -> Response:
+        """Check if provieded valid token for user with given email"""
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs) -> Response:
+        return self.validate_reset_password_token(request, *args, **kwargs)
