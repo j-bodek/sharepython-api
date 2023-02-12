@@ -13,6 +13,8 @@ class RequestResetPasswordSerializer(serializers.Serializer):
 
     # fields
     email = serializers.EmailField(required=True)
+    # token field isn't required when user want to generate new token
+    token = serializers.CharField(required=False)
 
     def validate_email(self, value: str) -> str:
         """Check if user with provided email exists"""
@@ -20,6 +22,27 @@ class RequestResetPasswordSerializer(serializers.Serializer):
         if not self.__check_user_exists(email=value):
             raise serializers.ValidationError(
                 f"User with email '{value}' does not exists"
+            )
+
+        return value
+
+    def validate_token(self, value: str) -> str:
+        """Check if provied token is valid for user with
+        specified email"""
+
+        # if token is empty string return it
+        if value == "":
+            return value
+
+        try:
+            user = self.__get_user(email=self.initial_data["email"])
+        except get_user_model().DoesNotExist:
+            """Validation error will be raised in validate_email method"""
+            return ""
+
+        if not self.get_password_token_generator().check_token(user, value):
+            raise serializers.ValidationError(
+                f"Provided token isn't valid for user with email '{self.initial_data['email']}'"
             )
 
         return value
