@@ -17,7 +17,7 @@ class RequestResetPasswordSerializer(serializers.Serializer):
     def validate_email(self, value: str) -> str:
         """Check if user with provided email exists"""
 
-        if not get_user_model().objects.filter(email=value).exists():
+        if not self.__check_user_exists(email=value):
             raise serializers.ValidationError(
                 f"User with email '{value}' does not exists"
             )
@@ -45,6 +45,16 @@ class RequestResetPasswordSerializer(serializers.Serializer):
             msg = "Before generating token, validate data"
             raise AssertionError(msg)
 
-        user = get_user_model().objects.get(email=self.validated_data["email"])
+        user = self.__get_user(email=self.validated_data["email"])
         token_generator = self.get_password_token_generator()
         return token_generator.make_token(user=user)
+
+    def __check_user_exists(self, **kwargs) -> bool:
+        """Check if user with given kwargs exists, Used for mocking in tests"""
+
+        return get_user_model().objects.filter(**kwargs).exists()
+
+    def __get_user(self, **kwargs) -> get_user_model():
+        """Return user instance matching given kwargs, Used for mocking in tests"""
+
+        return get_user_model().objects.get(**kwargs)
