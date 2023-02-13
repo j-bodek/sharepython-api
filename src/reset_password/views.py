@@ -38,7 +38,7 @@ class RequestResetPasswordView(generics.GenericAPIView):
         return self.request_password_reset(request, *args, **kwargs)
 
 
-class ConfirmResetPasswordView(generics.GenericAPIView):
+class ConfirmResetPasswordView(generics.UpdateAPIView):
     """
     This view is used to confirm password reset, and then set
     new user password.
@@ -74,7 +74,7 @@ class ConfirmResetPasswordView(generics.GenericAPIView):
         serializer = self.get_token_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-    def set_new_password(self, request) -> None:
+    def set_new_password(self, request) -> users_serializers.UserSerializer:
         """Set new user password"""
 
         instance = self.get_object()
@@ -84,20 +84,14 @@ class ConfirmResetPasswordView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-    def perform_update(self, serializer) -> None:
-        """Perform user password update"""
+        return serializer
 
-        serializer.save()
-
-    def confirm_reset_password(self, request, *args, **kwargs) -> Response:
+    def update(self, request, *args, **kwargs):
         """Handle confirm password reset"""
 
         self.validate_reset_password_token(request)
-        self.set_new_password(request)
-        return Response({}, status=status.HTTP_200_OK)
-
-    def put(self, request, *args, **kwargs) -> Response:
-        return self.confirm_reset_password(request, *args, **kwargs)
+        serializer = self.set_new_password(request)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ValidateResetPasswordView(generics.GenericAPIView):
