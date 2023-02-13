@@ -27,11 +27,53 @@ class TestRequestPasswordSerializer(SimpleTestCase):
         return_value=True,
     )
     def test_is_valid_with_valid_email(self, *mocks):
-        """Expect to return True"""
+        """Expect to return email value"""
 
         serializer = self.serializer_class(data={"email": "valid@email.com"})
         serializer.is_valid(raise_exception=True)
         self.assertEqual(serializer.validated_data["email"], "valid@email.com")
+
+    @mock.patch(
+        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__get_user",  # noqa
+    )
+    @mock.patch(
+        "reset_password.serializers.RequestResetPasswordSerializer.get_password_token_generator"  # noqa
+    )
+    def test_is_valid_with_invalid_token(
+        self, mocked_get_password_token_generator, *mocks
+    ):
+        """Expect to return ValidationError"""
+
+        mocked_token_generator = mock.MagicMock(
+            check_token=mock.MagicMock(return_value=False)
+        )
+        mocked_get_password_token_generator.return_value = mocked_token_generator
+        serializer = self.serializer_class(
+            data={"email": "valid@email.com", "token": "invalid_token"}
+        )
+
+        with self.assertRaises(serializers.ValidationError):
+            serializer.validate_token(value="invalid_token")
+
+    @mock.patch(
+        "reset_password.serializers.RequestResetPasswordSerializer._RequestResetPasswordSerializer__get_user",  # noqa
+    )
+    @mock.patch(
+        "reset_password.serializers.RequestResetPasswordSerializer.get_password_token_generator"  # noqa
+    )
+    def test_is_valid_with_valid_token(
+        self, mocked_get_password_token_generator, *mocks
+    ):
+        """Expect not to raise ValidationError"""
+
+        mocked_token_generator = mock.MagicMock(
+            check_token=mock.MagicMock(return_value=True)
+        )
+        mocked_get_password_token_generator.return_value = mocked_token_generator
+        serializer = self.serializer_class(
+            data={"email": "valid@email.com", "token": "valid_token"}
+        )
+        serializer.validate_token(value="valid_token")
 
     def test_generate_token_without_previously_called_is_valid(self):
         """AssertionError should be raised"""
