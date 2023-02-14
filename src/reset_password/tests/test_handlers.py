@@ -29,5 +29,7 @@ class TestRequestPasswordResetHandler(SimpleTestCase):
         self.assertEqual(kwargs["email_to"], mocked_serializer.validated_data["email"])
         self.assertEqual(
             kwargs["reset_password_url"],
-            settings.RESET_PASSWORD_URL(token="some_token"),
+            settings.RESET_PASSWORD_URL(
+                token="some_token", email="someemail@gmail.com"
+            ),
         )
