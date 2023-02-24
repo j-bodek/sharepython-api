@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework.utils import model_meta
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -44,13 +45,26 @@ class UserSerializer(serializers.ModelSerializer):
         Overrider update method to set updated password properly
         """
 
+        serializers.raise_errors_on_nested_writes("update", self, validated_data)
+        info = model_meta.get_field_info(instance)
+
+        m2m_fields = []
         for key, value in validated_data.items():
-            if key == "password":
+            # get m2m fields
+            if key in info.relations and info.relations[key].to_many:
+                m2m_fields.append((key, value))
+            elif key == "password":
                 self.__update_password(instance, value)
             else:
                 setattr(instance, key, value)
 
         instance.save()
+
+        # set m2m fields
+        for key, value in m2m_fields:
+            field = getattr(instance, key)
+            field.set(value)
+
         return instance
 
     def __update_password(self, user: get_user_model(), password: str) -> None:
