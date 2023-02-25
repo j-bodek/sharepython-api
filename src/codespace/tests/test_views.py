@@ -19,16 +19,27 @@ class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
+        self.is_codespace_owner_patcher = patch(
+            "codespace.views.share.IsCodeSpaceOwner.has_object_permission"
+        )
+        self.is_codespace_owner_mock = self.is_codespace_owner_patcher.start()
+        self.is_authenticated_patcher = patch(
+            "codespace.views.share.permissions.IsAuthenticated.has_permission"
+        )
+        self.is_authenticated_mock = self.is_authenticated_patcher.start()
 
-    @patch("codespace.views.share.IsCodeSpaceOwner.has_permission", return_value=True)
-    @patch(
-        "codespace.views.share.permissions.IsAuthenticated.has_permission",
-        return_value=True,
-    )
+        self.is_codespace_owner_mock.return_value = True
+        self.is_authenticated_mock.return_value = True
+
+    def send_request(self, **kwargs):
+        """Helper method that send post request to endpoint"""
+
+        return self.client.post(reverse("codespace:token_codespace_access"), **kwargs)
+
     def test_valid_post_request(self, *args):
         """Test if new token is returned after successfull request"""
-        r = self.client.post(
-            reverse("codespace:token_codespace_access"),
+
+        r = self.send_request(
             data={
                 "codespace_uuid": str(uuid.uuid4()),
                 "expire_time": 120,
@@ -39,18 +50,32 @@ class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.data.get("token", False))
 
-    @patch("codespace.views.share.IsCodeSpaceOwner.has_permission", return_value=True)
-    @patch(
-        "codespace.views.share.permissions.IsAuthenticated.has_permission",
-        return_value=True,
-    )
-    def test_request_without_expire_time(self, *args):
-        r = self.client.post(
-            reverse("codespace:token_codespace_access"),
+    def test_request_without_mode(self, *args):
+        r = self.send_request(
             data={"codespace_uuid": str(uuid.uuid4()), "expire_time": 120},
         )
 
         self.assertEqual(r.status_code, 400)
+
+    def test_request_without_expire_time(self, *args):
+        r = self.send_request(
+            data={"codespace_uuid": str(uuid.uuid4()), "mode": "edit"},
+        )
+
+        self.assertEqual(r.status_code, 400)
+
+    def test_request_without_not_as_codespace_owner(self, *args):
+
+        self.is_codespace_owner_mock.return_value = False
+        r = self.send_request(
+            data={
+                "codespace_uuid": str(uuid.uuid4()),
+                "expire_time": 120,
+                "mode": "edit",
+            },
+        )
+
+        self.assertEqual(r.status_code, 403)
 
 
 class TestCreateCodeSpaceView(TestCase):
