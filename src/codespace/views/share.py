@@ -1,6 +1,7 @@
-from rest_framework import permissions, generics, status
+from rest_framework import permissions, generics, status, exceptions
 from rest_framework.response import Response
-from django.http import HttpRequest
+from django.http import HttpRequest, Http404
+from core.models import CodeSpace
 from codespace.permissions import IsCodeSpaceOwner
 from codespace.serializers import TokenAccessCodeSpaceSerializer
 from typing import Type
@@ -15,8 +16,26 @@ class TokenCodeSpaceAccessCreateView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated, IsCodeSpaceOwner)
     serializer_class = TokenAccessCodeSpaceSerializer
 
+    def get_object(self) -> CodeSpace:
+        """
+        Return CodeSpace object
+        """
+
+        try:
+            obj = generics.get_object_or_404(
+                CodeSpace, uuid=self.request.data.get("codespace_uuid")
+            )
+        except Http404:
+            raise exceptions.NotFound(detail="CodeSpace does not exists")
+
+        self.check_object_permissions(self.request, obj)
+        return obj
+
     def post(self, request: HttpRequest, *args, **kwargs) -> Type[Response]:
         """Create and return access and refresh tokens"""
+
+        # raise 404 if not exists or permission denied if not owner
+        self.get_object()
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

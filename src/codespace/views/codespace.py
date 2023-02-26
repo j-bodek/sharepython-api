@@ -131,7 +131,7 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
         """
 
         obj = self.get_object()
-        self.check_object_permissions(self.request, obj)
+
         try:
             CodeSpace.save_redis_changes(codespace=obj)
         except ObjectDoesNotExist as e:
@@ -147,12 +147,13 @@ class CodeSpaceSaveChangesView(generics.GenericAPIView):
         Return CodeSpace object
         """
 
-        obj = CodeSpace.objects.filter(uuid=self.kwargs.get("uuid"))
-        if obj.exists():
-            # use filter to don't fire post_get signal
-            return obj.first()
-        else:
+        try:
+            obj = generics.get_object_or_404(CodeSpace, uuid=self.kwargs.get("uuid"))
+        except Http404:
             raise exceptions.NotFound(detail="CodeSpace does not exists")
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def patch(self, request: HttpRequest, *args, **kwargs) -> Response:
         return self.save_changes(request, *args, **kwargs)

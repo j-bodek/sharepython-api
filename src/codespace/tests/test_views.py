@@ -1,5 +1,5 @@
 from django.test import TestCase, SimpleTestCase
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 from rest_framework.test import APIClient
 from rest_framework import exceptions
 from django.urls import reverse
@@ -22,21 +22,27 @@ class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
         self.is_codespace_owner_patcher = patch(
             "codespace.views.share.IsCodeSpaceOwner.has_object_permission"
         )
-        self.is_codespace_owner_mock = self.is_codespace_owner_patcher.start()
         self.is_authenticated_patcher = patch(
             "codespace.views.share.permissions.IsAuthenticated.has_permission"
         )
+        self.get_object_or_404_patcher = patch(
+            "codespace.views.share.generics.get_object_or_404"
+        )
+
+        self.is_codespace_owner_mock = self.is_codespace_owner_patcher.start()
         self.is_authenticated_mock = self.is_authenticated_patcher.start()
+        self.get_object_or_404_mock = self.get_object_or_404_patcher.start()
 
         self.is_codespace_owner_mock.return_value = True
         self.is_authenticated_mock.return_value = True
+        self.get_object_or_404_mock.return_value = MagicMock(spec=CodeSpace)
 
     def send_request(self, **kwargs):
         """Helper method that send post request to endpoint"""
 
         return self.client.post(reverse("codespace:token_codespace_access"), **kwargs)
 
-    def test_valid_post_request(self, *args):
+    def test_valid_post_request(self):
         """Test if new token is returned after successfull request"""
 
         r = self.send_request(
@@ -50,21 +56,21 @@ class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.data.get("token", False))
 
-    def test_request_without_mode(self, *args):
+    def test_request_without_mode(self):
         r = self.send_request(
             data={"codespace_uuid": str(uuid.uuid4()), "expire_time": 120},
         )
 
         self.assertEqual(r.status_code, 400)
 
-    def test_request_without_expire_time(self, *args):
+    def test_request_without_expire_time(self):
         r = self.send_request(
             data={"codespace_uuid": str(uuid.uuid4()), "mode": "edit"},
         )
 
         self.assertEqual(r.status_code, 400)
 
-    def test_request_without_not_as_codespace_owner(self, *args):
+    def test_request_without_not_as_codespace_owner(self):
 
         self.is_codespace_owner_mock.return_value = False
         r = self.send_request(
@@ -75,7 +81,7 @@ class TestTokenCodeSpaceAccessCreateView(SimpleTestCase):
             },
         )
 
-        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.status_code, 401)
 
 
 class TestCreateCodeSpaceView(TestCase):
@@ -256,12 +262,15 @@ class TestCodeSpaceSaveChangesView(TestCase):
         self.codespace = CodeSpace.objects.create(created_by=self.user)
         self.ViewClass = codespace_views.CodeSpaceSaveChangesView
 
-    def test_get_object_method(self):
+    @patch(
+        "codespace.views.codespace.CodeSpaceSaveChangesView.check_object_permissions"
+    )
+    def test_get_object_method(self, *mocks):
         """
         Test if return CodeSpace, or raise exception if codespace does not exists
         """
 
-        view = self.ViewClass()
+        view = self.ViewClass(request=MagicMock())
         view.kwargs = {"uuid": str(self.codespace.uuid)}
         obj = view.get_object()
         self.assertEqual(str(obj.uuid), str(self.codespace.uuid))
