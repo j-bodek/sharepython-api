@@ -29,40 +29,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-z%o5p-6!l5@bvy!qrvfuup3m)dj2^n-(!qls&fgo)6$ackga@3"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG")
 
-ALLOWED_HOSTS = ["*"]
-
-CORS_ORIGIN_WHITELIST = [
-    "http://127.0.0.1:8080",
-    "http://0.0.0.0:8080",
-    "http://localhost:8080",
-    "http://127.0.0.1:8000",
-    "http://0.0.0.0:8000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8888",
-    "http://0.0.0.0:8888",
-    "http://localhost:8888",
-]
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8080",
-    "http://0.0.0.0:8080",
-    "http://localhost:8080",
-    "http://127.0.0.1:8888",
-    "http://0.0.0.0:8888",
-    "http://localhost:8888",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:8080",
-    "http://0.0.0.0:8080",
-    "http://localhost:8080",
-    "http://127.0.0.1:8888",
-    "http://0.0.0.0:8888",
-    "http://localhost:8888",
-]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+CORS_ORIGIN_WHITELIST = os.environ.get("CORS_ORIGIN_WHITELIST", "").split(",")
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
