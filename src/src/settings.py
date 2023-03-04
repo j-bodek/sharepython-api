@@ -23,7 +23,7 @@ environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+BASE_URL = os.environ.get("BASE_URL")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -182,12 +182,12 @@ EMAIL_USE_TLS = True
 
 # Define time after which redis will clear
 # unused codespace
-CODESPACE_REDIS_EXPIRE_TIME = 1200
+CODESPACE_REDIS_EXPIRE_TIME = os.environ.get("CODESPACE_REDIS_EXPIRE_TIME")
 # Define time after which redis will clear
 # unused temporary codespace
-TMP_CODESPACE_REDIS_EXPIRE_TIME = 1200
+TMP_CODESPACE_REDIS_EXPIRE_TIME = os.environ.get("CODESPACE_REDIS_EXPIRE_TIME")
 
 # set reset password page base url
 RESET_PASSWORD_URL = (
-    lambda token, email: f"http://localhost:8080/reset-password/{token}/?email={email}"
+    lambda token, email: f"{BASE_URL}reset-password/{token}/?email={email}"
 )
