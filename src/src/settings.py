@@ -24,6 +24,7 @@ environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_URL = os.environ.get("BASE_URL")
+BASE_FRONTEND_URL = os.environ.get("BASE_FRONTEND_URL")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -199,5 +200,5 @@ TMP_CODESPACE_REDIS_EXPIRE_TIME = os.environ.get("CODESPACE_REDIS_EXPIRE_TIME")
 
 # set reset password page base url
 RESET_PASSWORD_URL = (
-    lambda token, email: f"{BASE_URL}reset-password/{token}/?email={email}"
+    lambda token, email: f"{BASE_FRONTEND_URL}reset-password/{token}/?email={email}"
 )
