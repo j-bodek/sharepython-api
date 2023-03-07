@@ -1,7 +1,7 @@
 FROM --platform=linux/amd64 python:3.11.1-alpine3.16
 
 # it tells docker to prevent buffer python (logs will be printed in the console)
-ENV PYTHONBUFFERED 1
+ENV PYTHONBUFFERED=1
 
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt

@@ -18,15 +18,15 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
-        "api/docs/",
-        SpectacularSwaggerView.as_view(url_name="api-schema"),
-        name="api-docs",
-    ),
-    path("api/auth/", include("jwt_auth.urls")),  # auth endpoints
-    path("api/", include("users.urls")),  # users endpoints
-    path("api/", include("codespace.urls")),  # codespace endpoints
-    path("api/", include("reset_password.urls")),  # reset password endpoints
+        "",
+        SpectacularSwaggerView.as_view(url_name="api_schema"),
+        name="api_docs",
+    ), # docs
+    path("schema/", SpectacularAPIView.as_view(), name="api_schema"),
+    path("admin/", admin.site.urls),
+    path("auth/", include("jwt_auth.urls")),  # auth endpoints
+    path("", include("users.urls")),  # users endpoints
+    path("", include("codespace.urls")),  # codespace endpoints
+    path("", include("reset_password.urls")),  # reset password endpoints
 ]
